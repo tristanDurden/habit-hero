@@ -1,37 +1,39 @@
 import React from "react";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Habit } from "../habitStore";
-import HabitCard from "./HabitCard";
+import { Habit } from "@/lib/types";
 import NewHabit from "./NewHabit";
 import { SquarePen } from "lucide-react";
 
 type Props = {
   mode: "add" | "update";
-  habit?: Habit;
+  habit: Habit;
 };
 
 export default function HabitDialog({ mode, habit }: Props) {
-  const nameTrigger = mode === "add" ? "Add Habit" : <SquarePen size={20} />;
+  const nameTrigger =
+    mode === "add" ? "Add Habit" : <SquarePen size={20} className="p-0" />;
+  const dialogTitle = mode === "add" ? "Add Habit" : "Update Habit";
   return (
-    <div>
+    <div className="">
       <Dialog>
-        <DialogTrigger className="bg-slate-200 p-2 rounded-full cursor-pointer hover:bg-slate-400">
+        <DialogTrigger className="cursor-pointer p-0 m-0 items-center justify-center">
           {nameTrigger}
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{nameTrigger}</DialogTitle>
+            <DialogTitle>{dialogTitle}</DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
-
-          <NewHabit />
+          {/* Component with inputs */}
+          <NewHabit habit={habit} mode={mode} />
         </DialogContent>
       </Dialog>
     </div>
