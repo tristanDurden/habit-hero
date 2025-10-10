@@ -43,7 +43,9 @@ const useHabitStore = create<HabitStore>()(
         })),
       updateHabit: (habit: Habit) =>
         set((state) => ({
-          habits: state.habits.map((h) => (h.id === habit.id ? habit : h)),
+          habits: state.habits.map((h) =>
+            h.id === habit.id ? { ...h, ...habit } : h
+          ),
         })),
       // Update Habbit Log!
     }),

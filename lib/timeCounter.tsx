@@ -1,8 +1,16 @@
-import { getWeekDay, Habit, numberTranslater, periodTranslater } from "./types";
+import {
+  getWeekDay,
+  getWeekdayNumber,
+  Habit,
+  numberTranslater,
+  periodTranslater,
+  weekdays,
+} from "./types";
 
 export const now = Date.now();
 export const nowDate = new Date(now);
 export const DAYDURATION = 24 * 60 * 60 * 1000;
+export const WEEKDURATION = DAYDURATION * 7;
 const midnight = new Date().setHours(0, 0, 0, 0);
 const nextMidnight = DAYDURATION + midnight;
 
@@ -19,12 +27,11 @@ export default function isReadyToComplete(habit: Habit): boolean {
 
   const counter = habit.counter;
   const frequencyNumber = numberTranslater[frequencyString];
-  const timePeriod = periodTranslater[frequencyTime];
 
   //  cases of different time periods
   //first case when it is day! or typeof timePeriod === "string"
   if (frequencyTime === "day") {
-    if (midnight > lastCompleted && counter + 1 < frequencyNumber) {
+    if (midnight > lastCompleted) {
       return true;
     } else {
       return false;
@@ -37,9 +44,15 @@ export default function isReadyToComplete(habit: Habit): boolean {
       midnight > lastCompleted &&
       scheduleWeek.includes(getWeekDay(nowDate))
     ) {
-      console.log("week", getWeekDay(nowDate));
+      console.log("week true", getWeekDay(nowDate), scheduleWeek);
       return true;
     } else {
+      console.log(
+        "week false",
+        getWeekDay(nowDate),
+        nowDate.getDay(),
+        scheduleWeek
+      );
       return false;
     }
     //  third for month
@@ -48,11 +61,48 @@ export default function isReadyToComplete(habit: Habit): boolean {
   }
 }
 // needs to check for week and month!
-export function keepStreak(habit: Habit): boolean {
+export function keepDayStreak(habit: Habit): boolean {
   const lastCompleted = habit.lastCompleted;
   if (midnight - lastCompleted < DAYDURATION) {
     return true;
   } else {
     return false;
   }
+}
+// here we go for week streak counting
+export function keepWeekStreak(habit: Habit): boolean {
+  const lastCompleted = habit.lastCompleted;
+  if (WEEKDURATION > now - lastCompleted) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+//counting timer for week estimation
+export function msUntilNextScheduledDay(habit: Habit): number {
+  //if its day
+  if (habit.frequency[1] === "day") return msUntilMidnight;
+  // const for calculating days until next scheduled day
+  const scheduleWeek = habit.schedule.map((item) => getWeekdayNumber(item));
+  const todayDayNumber = nowDate.getDay();
+  // returning ms until next scheduled day
+  let msUntilNextScheduledDay = 0;
+  let daysUntilNextScheduledDay = 0;
+  // scenario when today is before the first scheduled day
+  if (todayDayNumber < scheduleWeek[0]) {
+    daysUntilNextScheduledDay = scheduleWeek[0] - todayDayNumber;
+  } else if (
+    todayDayNumber > scheduleWeek[0] &&
+    todayDayNumber < scheduleWeek[1]
+  ) {
+    daysUntilNextScheduledDay = scheduleWeek[1] - todayDayNumber;
+  } else {
+    daysUntilNextScheduledDay = scheduleWeek[0] + 7 - todayDayNumber;
+  }
+  msUntilNextScheduledDay =
+    daysUntilNextScheduledDay === 1
+      ? msUntilMidnight
+      : (daysUntilNextScheduledDay - 1) * DAYDURATION + msUntilMidnight;
+  return msUntilNextScheduledDay;
 }

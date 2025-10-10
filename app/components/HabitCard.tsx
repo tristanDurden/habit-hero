@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect } from "react";
 import useHabitStore from "../habitStore";
-import { Habit, numberTranslater } from "@/lib/types";
+import { getWeekDay, Habit, numberTranslater } from "@/lib/types";
 import {
   Card,
   CardAction,
@@ -16,8 +16,10 @@ import HabitDialog from "./HabitDialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import isReadyToComplete, {
-  keepStreak,
+  keepDayStreak,
+  keepWeekStreak,
   msUntilMidnight,
+  msUntilNextScheduledDay,
 } from "@/lib/timeCounter";
 
 import { Progress } from "@/components/ui/progress";
@@ -33,9 +35,9 @@ export default function HabitCard({ habit }: Props) {
 
   //timing is not good enough! need to calibrate
   const isTimePassed: boolean = isReadyToComplete(habit);
-  // if (isTimePassed && habit.doneToday) {
-  //   //console.log("time passed");
-  // }
+
+  //const
+  const lastCompletedDate = new Date(habit.lastCompleted);
   const frequencyNumber = numberTranslater[habit.frequency[0]];
   //progress variable
   const progress =
@@ -53,44 +55,54 @@ export default function HabitCard({ habit }: Props) {
       });
     }
 
+    // we should check if habit is for a week or day
+    const msUntill = msUntilNextScheduledDay(habit);
+
     const timer = setTimeout(() => {
       updateHabit({
         ...habit,
         counter: 0,
         doneToday: false,
       });
-    }, msUntilMidnight);
+    }, msUntill);
 
-    console.log(timer, msUntilMidnight / (1000 * 60));
+    console.log(timer, msUntill / (1000 * 60));
 
     return () => clearTimeout(timer);
   }, [habit.lastCompleted]);
 
   // click on the complete button
   const handleCompleted = () => {
+    console.log(habit);
+    const newCounter = habit.counter + 1;
+    const checkFinish = newCounter === frequencyNumber;
+
     if (habit.doneToday === false) {
+      //need to get a seperate function to handle to keep code clean
+
+      // updating the button for day frequency
       if (habit.frequency[1] === "day") {
-        if (habit.counter + 1 < frequencyNumber) {
-          updateHabit({
-            ...habit,
-            lastCompleted: Date.now(),
-            counter: habit.counter + 1,
-          });
-        } else {
-          updateHabit({
-            ...habit,
-            streak: keepStreak(habit) ? habit.streak + 1 : 1,
-            doneToday: true,
-            counter: habit.counter + 1,
-          });
-        }
+        //local vars
+
+        console.log("click!");
+        updateHabit({
+          ...habit,
+          counter: newCounter,
+          lastCompleted: Date.now(),
+          streak: checkFinish
+            ? keepDayStreak(habit)
+              ? habit.streak + 1
+              : 1
+            : habit.streak,
+          doneToday: checkFinish ? true : habit.doneToday,
+        });
       } else if (habit.frequency[1] === "week") {
         updateHabit({
           ...habit,
           //streak is not calculating right
-          streak: keepStreak(habit) ? habit.streak + 1 : 1,
+          streak: keepWeekStreak(habit) ? habit.streak + 1 : 1,
           lastCompleted: Date.now(),
-          counter: habit.counter + 1,
+          counter: newCounter,
           doneToday: true,
         });
       }
@@ -126,19 +138,23 @@ export default function HabitCard({ habit }: Props) {
           </CardAction>
         </CardHeader>
         <CardContent className="border-2 border-slate-500">
-          <p>id:{habit.id}</p>
           <p>
             Frequency: {habit.frequency[0]} per {habit.frequency[1]}
           </p>
-          <p>Yor counter of times: {habit.counter} </p>
           <p>Your streak: {habit.streak}</p>
-          <p>LastCompleted: {habit.lastCompleted}</p>
-          <p>is time pased to do {isTimePassed ? "yes" : "no"} </p>
           <p>
-            {habit.doneToday
-              ? "You ve already done it for today"
-              : "Your task is waiting for making it today"}
+            LastCompleted: {lastCompletedDate.toLocaleString()} -{" "}
+            {getWeekDay(lastCompletedDate)}
           </p>
+          {habit.frequency[1] === "week" && (
+            <>
+              <p>Schedule:</p>
+              {habit.schedule.length > 0 &&
+                habit.schedule.map((item, id) => (
+                  <p key={id}>{getWeekDay(item)}</p>
+                ))}
+            </>
+          )}
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
           <Button
@@ -147,7 +163,7 @@ export default function HabitCard({ habit }: Props) {
             variant={habit.doneToday ? "ghost" : "default"}
             className=""
           >
-            {habit.doneToday ? "Completed!" : `Press to complete!`}
+            {habit.doneToday ? "Completed for now!" : `Press to complete!`}
           </Button>
           <Progress value={progress} className="w-[75%]" />
         </CardFooter>

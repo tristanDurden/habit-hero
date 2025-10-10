@@ -45,3 +45,7 @@ export type Habit = {
     const dateObj = typeof day === 'string' ? new Date(day) : day;
     return weekdays[dateObj.getDay()];
   }
+  export const getWeekdayNumber = (day: Date | string) => {
+    const dateObj = typeof day === 'string' ? new Date(day) : day;  
+    return dateObj.getDay();
+  }

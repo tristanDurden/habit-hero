@@ -24,14 +24,17 @@ export function Calendar04({ date, frequency, onSendSchedule }: Props) {
   frequencyTime === "week"
     ? lastDay.setDate(lastDay.getDate() + 6)
     : lastDay.setDate(lastDay.getDate() + 31);
-  console.log(firstDay, lastDay, date);
+  // console.log(firstDay, lastDay, date);
 
   //  state changing
   //const updateHabit = useHabitStore((state) => state.updateHabit);
   const [pickedDates, setPickedDates] = React.useState<Date[]>([nowDate]);
 
   React.useEffect(() => {
-    onSendSchedule(pickedDates);
+    const sortedPickedDates = pickedDates.sort(
+      (a, b) => a.getDay() - b.getDay()
+    );
+    onSendSchedule(sortedPickedDates);
   }, [pickedDates]);
 
   //   if (frequencyTime === "week") {
