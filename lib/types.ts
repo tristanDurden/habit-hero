@@ -23,9 +23,7 @@ export type Habit = {
   };
 
   export type HabitLog = {
-    [habitId: string]: {
-      [date: string]: number;
-    };
+    [habitId: string]: Array<{date: string, count: number}>;
   };
   export const numberTranslater: Record<string, number> = {
     "one": 1,
@@ -35,11 +33,6 @@ export type Habit = {
 
   export const weekdays = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     
-  export const periodTranslater: Record<string, number[] | string[] | string> = {
-    "day": 'day',
-    "week": weekdays,
-    "month": Array.from({length: 31}, (_, i) => (i+1))
-  }
   
   export const getWeekDay = (day: Date | string) => {
     const dateObj = typeof day === 'string' ? new Date(day) : day;

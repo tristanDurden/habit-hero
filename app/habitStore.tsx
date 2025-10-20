@@ -1,9 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Habit, HabitLog } from "@/lib/types";
-
-// Helper: format date as YYYY-MM-DD
-export const todayKey = () => new Date().toISOString().split("T")[0];
+import { da } from "date-fns/locale";
 
 // set up the gamification. maybe in a deifferent file so there is less info
 
@@ -26,7 +24,7 @@ type HabitActions = {
   addHabit: (habit: Habit) => void;
   removeHabit: (id: string) => void;
   updateHabit: (habit: Habit) => void;
-  //updateHabitLog: (habitId: string) => void;
+  updateHabitLog: (id: string, date: string) => void;
 };
 type HabitStore = HabitState & HabitActions;
 
@@ -37,10 +35,15 @@ const useHabitStore = create<HabitStore>()(
       habitLog: {},
       addHabit: (habit: Habit) =>
         set((state) => ({ habits: [...state.habits, habit] })),
+      //  removing habit and removing in habitLog
       removeHabit: (id: string) =>
-        set((state) => ({
-          habits: state.habits.filter((habit) => habit.id !== id),
-        })),
+        set((state) => {
+          const log = { ...state.habitLog };
+          delete log[id];
+          const habits = [...state.habits];
+          const newHabits = habits.filter((habit) => habit.id !== id);
+          return { habits: newHabits, habitLog: log };
+        }),
       updateHabit: (habit: Habit) =>
         set((state) => ({
           habits: state.habits.map((h) =>
@@ -48,6 +51,20 @@ const useHabitStore = create<HabitStore>()(
           ),
         })),
       // Update Habbit Log!
+      updateHabitLog: (id: string, date: string) =>
+        set((state) => {
+          const log = { ...state.habitLog };
+          const habitLog = log[id] ? [...log[id]] : [];
+
+          const existDate = habitLog.find((entry) => entry.date === date);
+          if (existDate) {
+            existDate.count++;
+          } else {
+            habitLog.push({ date: date, count: 1 });
+          }
+          log[id] = habitLog;
+          return { habitLog: log };
+        }),
     }),
     { name: "habits-storage" }
   )

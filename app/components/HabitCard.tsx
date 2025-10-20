@@ -16,24 +16,30 @@ import HabitDialog from "./HabitDialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import isReadyToComplete, {
+  howManyDaysLeftFromLast,
   keepDayStreak,
   keepWeekStreak,
   msUntilMidnight,
   msUntilNextScheduledDay,
+  nowDate,
+  todayKey,
 } from "@/lib/timeCounter";
 
 import { Progress } from "@/components/ui/progress";
+import { Drawer } from "vaul";
+import { DrawerInfo } from "./DrawerModal";
 
 type Props = {
   habit: Habit;
 };
 
 export default function HabitCard({ habit }: Props) {
+  // habitStore functnions
   const removeHabit = useHabitStore((state) => state.removeHabit);
   const updateHabit = useHabitStore((state) => state.updateHabit);
+  const updateHabitLog = useHabitStore((state) => state.updateHabitLog);
   //const updateHabitLog = useHabitStore((state) => state.updateHabitLog);
 
-  //timing is not good enough! need to calibrate
   const isTimePassed: boolean = isReadyToComplete(habit);
 
   //const
@@ -56,7 +62,7 @@ export default function HabitCard({ habit }: Props) {
     }
 
     // we should check if habit is for a week or day
-    const msUntill = msUntilNextScheduledDay(habit);
+    const msUntilNextScheduled = msUntilNextScheduledDay(habit);
 
     const timer = setTimeout(() => {
       updateHabit({
@@ -64,9 +70,9 @@ export default function HabitCard({ habit }: Props) {
         counter: 0,
         doneToday: false,
       });
-    }, msUntill);
+    }, msUntilNextScheduled);
 
-    console.log(timer, msUntill / (1000 * 60));
+    console.log(timer, msUntilNextScheduled / (1000 * 60));
 
     return () => clearTimeout(timer);
   }, [habit.lastCompleted]);
@@ -85,6 +91,7 @@ export default function HabitCard({ habit }: Props) {
         //local vars
 
         console.log("click!");
+        updateHabitLog(habit.id, todayKey(new Date()));
         updateHabit({
           ...habit,
           counter: newCounter,
@@ -97,6 +104,7 @@ export default function HabitCard({ habit }: Props) {
           doneToday: checkFinish ? true : habit.doneToday,
         });
       } else if (habit.frequency[1] === "week") {
+        updateHabitLog(habit.id, todayKey(new Date()));
         updateHabit({
           ...habit,
           //streak is not calculating right
@@ -127,6 +135,7 @@ export default function HabitCard({ habit }: Props) {
           <CardTitle>{habit.title}</CardTitle>
           <CardDescription>{habit.description}</CardDescription>
           <CardAction className="flex gap-2 items-center justify-center">
+            <DrawerInfo habit={habit} />
             <HabitDialog mode="update" habit={habit} />
 
             <button
@@ -144,7 +153,8 @@ export default function HabitCard({ habit }: Props) {
           <p>Your streak: {habit.streak}</p>
           <p>
             LastCompleted: {lastCompletedDate.toLocaleString()} -{" "}
-            {getWeekDay(lastCompletedDate)}
+            {getWeekDay(lastCompletedDate)} -{" "}
+            {howManyDaysLeftFromLast(lastCompletedDate, nowDate)} days ago
           </p>
           {habit.frequency[1] === "week" && (
             <>

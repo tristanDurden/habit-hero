@@ -3,7 +3,6 @@ import {
   getWeekdayNumber,
   Habit,
   numberTranslater,
-  periodTranslater,
   weekdays,
 } from "./types";
 
@@ -44,15 +43,8 @@ export default function isReadyToComplete(habit: Habit): boolean {
       midnight > lastCompleted &&
       scheduleWeek.includes(getWeekDay(nowDate))
     ) {
-      console.log("week true", getWeekDay(nowDate), scheduleWeek);
       return true;
     } else {
-      console.log(
-        "week false",
-        getWeekDay(nowDate),
-        nowDate.getDay(),
-        scheduleWeek
-      );
       return false;
     }
     //  third for month
@@ -60,7 +52,7 @@ export default function isReadyToComplete(habit: Habit): boolean {
     return true;
   }
 }
-// needs to check for week and month!
+// needs to check for  month!
 export function keepDayStreak(habit: Habit): boolean {
   const lastCompleted = habit.lastCompleted;
   if (midnight - lastCompleted < DAYDURATION) {
@@ -106,3 +98,22 @@ export function msUntilNextScheduledDay(habit: Habit): number {
       : (daysUntilNextScheduledDay - 1) * DAYDURATION + msUntilMidnight;
   return msUntilNextScheduledDay;
 }
+
+export function howManyDaysLeftFromLast(last: Date, now: Date): number {
+  // consts
+  const lastDay = last.getDate();
+  const nowDate = now.getDate();
+  //var
+  let difference: number = 0;
+  // case if month changed
+  if (lastDay > nowDate) {
+    difference = lastDay - nowDate;
+  } else {
+    difference = nowDate - lastDay;
+  }
+
+  return difference;
+}
+
+// Helper: format date as YYYY-MM-DD
+export const todayKey = (date: Date) => date.toISOString().split("T")[0];
