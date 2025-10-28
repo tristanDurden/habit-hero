@@ -2,7 +2,6 @@
 
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
 import { useMediaQuery } from "react-responsive";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,22 +26,43 @@ import CalendarHeatmap from "react-calendar-heatmap";
 import useHabitStore from "../habitStore";
 import { Habit } from "@/lib/types";
 import { CalendarDays } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { PopUpMenu } from "./PopUpMenuCalendar";
+import { mapTasksForCalendar } from "@/lib/habitlogFunc";
+import { useEffect } from "react";
 
 type Props = {
   habit: Habit;
 };
 
-export function DrawerInfo({ habit }: Props) {
+export function CalendarDrawer() {
   const [open, setOpen] = React.useState(false);
+  //  state of mounted for ssr hydration issue
+  const [mounted, setMounted] = React.useState(false);
+  const [chosenHabits, setChosenHabits] = React.useState<Habit[]>([]);
   const isDesktop = useMediaQuery({ query: "(min-width: 768px)" });
 
-  const now = new Date();
-  now.setMonth(now.getMonth() - 6);
-  const startDate = now;
+  const startDate = React.useMemo(() => {
+    const now = new Date();
+    now.setMonth(now.getMonth() - 6);
+    return now;
+  }, []);
 
   //  store consts
   const habitLog = useHabitStore((state) => state.habitLog);
-  const log = habitLog[habit.id];
+
+  const log = mapTasksForCalendar(habitLog, chosenHabits);
+  //for hydration issue
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  //  recalculating count right with substracting
+
+  if (!mounted) return null;
 
   if (isDesktop) {
     return (
@@ -52,16 +72,23 @@ export function DrawerInfo({ habit }: Props) {
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{habit.title}</DialogTitle>
-            <DialogDescription>{habit.description}</DialogDescription>
-            <p>{!log && "You have not complete it yet"}</p>
-            <p>another bio</p>
-            {log ? (
+            <DialogTitle>Calendar of your habits!</DialogTitle>
+            <DialogDescription>Showing off</DialogDescription>
+            <PopUpMenu
+              chosenHabits={chosenHabits}
+              setChosenHabits={setChosenHabits}
+            />
+            {chosenHabits[0] &&
+              chosenHabits.map((habit) => <p key={habit.id}>{habit.title}</p>)}
+            {chosenHabits[0] ? (
               <CalendarHeatmap
                 startDate={startDate}
                 endDate={new Date()}
                 showWeekdayLabels
                 values={log}
+                titleForValue={(log) =>
+                  `You completed ${log?.count} time(s) on ${log?.date}`
+                }
               />
             ) : (
               ""
@@ -79,22 +106,18 @@ export function DrawerInfo({ habit }: Props) {
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="text-left">
-          <DrawerTitle>Edit profile</DrawerTitle>
-          <DrawerDescription>
-            Make changes to your profile here. Click save when you&apos;re done.
-          </DrawerDescription>
+          <DialogTitle>Calendar of your habits!</DialogTitle>
+          <DialogDescription>Showing off</DialogDescription>
+
+          <PopUpMenu
+            chosenHabits={chosenHabits}
+            setChosenHabits={setChosenHabits}
+          />
+
+          {chosenHabits[0] &&
+            chosenHabits.map((habit) => <p key={habit.id}>{habit.title}</p>)}
         </DrawerHeader>
-        <p>wtf</p>
-        <CalendarHeatmap
-          startDate={new Date("2016-01-01")}
-          endDate={new Date("2016-04-01")}
-          values={[
-            { date: "2016-01-01", count: 12 },
-            { date: "2016-01-22", count: 122 },
-            { date: "2016-01-30", count: 38 },
-            // ...and so on
-          ]}
-        />
+
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>
             <Button variant="outline">Cancel</Button>

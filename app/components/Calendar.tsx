@@ -3,7 +3,7 @@
 import * as React from "react";
 
 import { Calendar } from "@/components/ui/calendar";
-import { getWeekDay, numberTranslater, periodTranslater } from "@/lib/types";
+import { getWeekDay, numberTranslater } from "@/lib/types";
 
 type Props = {
   date: number;

@@ -4,12 +4,10 @@ import useHabitStore from "../habitStore";
 import HabitCard from "./HabitCard";
 import HabitDialog from "./HabitDialog";
 import { AddDefaultHabit } from "@/lib/types";
-import { Button } from "@/components/ui/button";
-import { todayKey } from "@/lib/timeCounter";
+import ActivityTable from "./ActivityTable";
 
 export default function Dashboard() {
   const habits = useHabitStore((state) => state.habits);
-  const habitLog = useHabitStore((state) => state.habitLog);
 
   return (
     <div className="p-4 flex flex-col items-center">
@@ -22,18 +20,7 @@ export default function Dashboard() {
           return <HabitCard key={habit.id} habit={habit} />;
         })}
       </div>
-      <div>
-        {/* {Object.entries(habitLog).map(([id, logs]) => (
-          <div key={id}>
-            <h1>{id}</h1>
-            {logs.map((log) => (
-              <p key={log.date}>
-                {log.date} - {log.count}
-              </p>
-            ))}
-          </div>
-        ))} */}
-      </div>
+      <ActivityTable />
     </div>
   );
 }

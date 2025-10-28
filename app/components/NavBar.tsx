@@ -2,6 +2,7 @@ import React from "react";
 import { ModeToggle } from "./ModeToggle";
 import { SquareStar } from "lucide-react";
 import TaskCalendar from "./TaskCalendar";
+import { CalendarDrawer } from "./CalendarDrawer";
 
 export default function NavBar() {
   return (
@@ -11,7 +12,7 @@ export default function NavBar() {
         <h1 className="text-2xl font-bold">Habit Hero</h1>
       </div>
       <div className="flex items-center gap-5">
-        <TaskCalendar />
+        <CalendarDrawer />
         <ModeToggle />
       </div>
     </div>

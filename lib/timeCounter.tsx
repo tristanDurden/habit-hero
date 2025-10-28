@@ -99,20 +99,28 @@ export function msUntilNextScheduledDay(habit: Habit): number {
   return msUntilNextScheduledDay;
 }
 
-export function howManyDaysLeftFromLast(last: Date, now: Date): number {
+export function howManyDaysLeftFromLast(last: Date, now: Date): string {
   // consts
   const lastDay = last.getDate();
   const nowDate = now.getDate();
   //var
   let difference: number = 0;
+  let message: string = "";
   // case if month changed
   if (lastDay > nowDate) {
     difference = lastDay - nowDate;
   } else {
     difference = nowDate - lastDay;
   }
+  if (difference === 0) {
+    message = "today";
+  } else if (difference === 1) {
+    message = "yesterday";
+  } else {
+    message = `${difference} days ago`;
+  }
 
-  return difference;
+  return message;
 }
 
 // Helper: format date as YYYY-MM-DD

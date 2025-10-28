@@ -30,7 +30,7 @@ type HabitStore = HabitState & HabitActions;
 
 const useHabitStore = create<HabitStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       habits: [],
       habitLog: {},
       addHabit: (habit: Habit) =>

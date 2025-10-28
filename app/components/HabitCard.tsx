@@ -19,15 +19,13 @@ import isReadyToComplete, {
   howManyDaysLeftFromLast,
   keepDayStreak,
   keepWeekStreak,
-  msUntilMidnight,
   msUntilNextScheduledDay,
   nowDate,
   todayKey,
 } from "@/lib/timeCounter";
 
 import { Progress } from "@/components/ui/progress";
-import { Drawer } from "vaul";
-import { DrawerInfo } from "./DrawerModal";
+import { HabitInfo } from "./HabitInfo";
 
 type Props = {
   habit: Habit;
@@ -54,6 +52,11 @@ export default function HabitCard({ habit }: Props) {
   //  checking if time passed to complete habit
   useEffect(() => {
     if (isTimePassed) {
+      //  alert if habits are waiting for completion
+      toast(`You habit - "${habit.title}" - is waiting to be done!`, {
+        position: "bottom-center",
+        description: `What are you waiting for?`,
+      });
       updateHabit({
         ...habit,
         counter: 0,
@@ -135,7 +138,7 @@ export default function HabitCard({ habit }: Props) {
           <CardTitle>{habit.title}</CardTitle>
           <CardDescription>{habit.description}</CardDescription>
           <CardAction className="flex gap-2 items-center justify-center">
-            <DrawerInfo habit={habit} />
+            <HabitInfo habit={habit} />
             <HabitDialog mode="update" habit={habit} />
 
             <button
@@ -154,7 +157,7 @@ export default function HabitCard({ habit }: Props) {
           <p>
             LastCompleted: {lastCompletedDate.toLocaleString()} -{" "}
             {getWeekDay(lastCompletedDate)} -{" "}
-            {howManyDaysLeftFromLast(lastCompletedDate, nowDate)} days ago
+            {howManyDaysLeftFromLast(lastCompletedDate, nowDate)}
           </p>
           {habit.frequency[1] === "week" && (
             <>
