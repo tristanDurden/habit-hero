@@ -1,8 +1,8 @@
 import React from "react";
 import { ModeToggle } from "./ModeToggle";
 import { SquareStar } from "lucide-react";
-import TaskCalendar from "./TaskCalendar";
 import { CalendarDrawer } from "./CalendarDrawer";
+import { AuthButtons } from "./AuthButtons";
 
 export default function NavBar() {
   return (
@@ -12,6 +12,7 @@ export default function NavBar() {
         <h1 className="text-2xl font-bold">Habit Hero</h1>
       </div>
       <div className="flex items-center gap-5">
+        <AuthButtons />
         <CalendarDrawer />
         <ModeToggle />
       </div>

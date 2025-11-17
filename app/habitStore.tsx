@@ -24,7 +24,7 @@ type HabitActions = {
   addHabit: (habit: Habit) => void;
   removeHabit: (id: string) => void;
   updateHabit: (habit: Habit) => void;
-  updateHabitLog: (id: string, date: string) => void;
+  updateHabitLog: (habitId: string, date: string) => void;
 };
 type HabitStore = HabitState & HabitActions;
 
@@ -51,10 +51,10 @@ const useHabitStore = create<HabitStore>()(
           ),
         })),
       // Update Habbit Log!
-      updateHabitLog: (id: string, date: string) =>
+      updateHabitLog: (habitId: string, date: string) =>
         set((state) => {
           const log = { ...state.habitLog };
-          const habitLog = log[id] ? [...log[id]] : [];
+          const habitLog = log[habitId] ? [...log[habitId]] : [];
 
           const existDate = habitLog.find((entry) => entry.date === date);
           if (existDate) {
@@ -62,7 +62,7 @@ const useHabitStore = create<HabitStore>()(
           } else {
             habitLog.push({ date: date, count: 1 });
           }
-          log[id] = habitLog;
+          log[habitId] = habitLog;
           return { habitLog: log };
         }),
     }),

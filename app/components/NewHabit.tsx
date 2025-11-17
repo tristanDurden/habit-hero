@@ -15,7 +15,9 @@ import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
 import { Habit } from "@/lib/types";
 import { Calendar04 } from "./Calendar";
-import { now } from "@/lib/timeCounter";
+import { now, nowDate } from "@/lib/timeCounter";
+import { useSession } from "next-auth/react";
+import { redirect } from "next/dist/server/api-utils";
 
 type Props = {
   habit: Habit;
@@ -23,16 +25,19 @@ type Props = {
 };
 
 export default function NewHabit({ habit, mode }: Props) {
+  //  setForm consts
   const [form, setForm] = useState({
     title: habit.title,
     description: habit.description,
     frequency: habit.frequency,
-    doneToday: habit.doneToday,
-    schedule: [new Date(now)],
+    doneToday: false,
+    schedule: [nowDate()],
   });
+
+  //  session const now needed
+
   const updateHabit = useHabitStore((state) => state.updateHabit);
   const addHabit = useHabitStore((state) => state.addHabit);
-  //const updateHabitLog = useHabitStore((state) => state.updateHabitLog);
 
   const inputHabit: Habit = {
     id: mode === "update" ? habit.id : uuidv4(),
@@ -42,12 +47,20 @@ export default function NewHabit({ habit, mode }: Props) {
     counter: habit.counter,
     lastCompleted: habit.lastCompleted,
     streak: habit.streak,
-    doneToday: form.doneToday,
+    doneToday: mode === "update" ? habit.doneToday : form.doneToday,
     schedule: form.schedule,
   };
 
-  const handleSaveHabit = () => {
+  const handleSaveHabit = async () => {
     if (mode === "add") {
+      await fetch("/api/habits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...inputHabit,
+        }),
+      });
+
       addHabit(inputHabit);
       console.log(inputHabit);
       toast(`You ve added "${inputHabit.title}" for your habits list`, {
@@ -149,7 +162,7 @@ export default function NewHabit({ habit, mode }: Props) {
             {(form.frequency[1] === "week" ||
               form.frequency[1] === "month") && (
               <Calendar04
-                date={now}
+                date={now()}
                 frequency={form.frequency}
                 onSendSchedule={handleScheduleChange}
               />

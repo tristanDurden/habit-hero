@@ -22,7 +22,6 @@ export function mapTasksForCalendar(habitLog: HabitLog, habits: Habit[]) {
     const habitArray = habitLog[id];
     if (!habitArray) return;
     habitArray.forEach((entry) => {
-      console.log(addedLog);
       const exists = addedLog.find((log) => log.date === entry.date);
       if (exists) {
         exists.count += entry.count;

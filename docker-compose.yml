@@ -5,10 +5,10 @@ services:
     container_name: habitapp-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: habitsdb
+      MYSQL_ROOT_PASSWORD: root1234
+      MYSQL_DATABASE: habit_app_db
       MYSQL_USER: habituser
-      MYSQL_PASSWORD: habitpass
+      MYSQL_PASSWORD: habitpass123
     ports:
       - "3306:3306"
     volumes:
