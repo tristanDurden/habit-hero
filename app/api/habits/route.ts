@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { Habit } from "@/lib/types";
-import { Habibi } from "next/font/google";
+import { nowInSeconds } from "@/lib/timeCounter";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -55,10 +55,15 @@ export async function POST(req: NextRequest) {
           id: body.id,
         },
         update: {
+          title: body.title,
+          description: body.description,
+          frequency: body.frequency[0].concat('/', body.frequency[1]),
+          schedule: scheduleString,
           counter: Number(body.counter),
           lastCompleted: body.lastCompleted/1000,
           streak: Number(body.streak),
           doneToday: body.doneToday,
+          updatedAt: nowInSeconds(),
         },
         create: {
           id: body.id,
@@ -71,14 +76,15 @@ export async function POST(req: NextRequest) {
           lastCompleted: (body.lastCompleted/1000),
           doneToday: Boolean(body.doneToday),
           userId: userId,
+          updatedAt: body.updatedAt ? Math.floor(body.updatedAt / 1000) : nowInSeconds(),
         },
       });
       return NextResponse.json(newHabit);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Failed to create habit:', error);
+      console.error('Failed to create/update habit:', error);
       return NextResponse.json(
-        { error: 'Failed to create habit', details: message },
+        { error: 'Failed to create/update habit', details: message },
         { status: 500 }
       );
     }

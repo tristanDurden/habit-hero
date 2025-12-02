@@ -1,13 +1,18 @@
+export type frequencyNumber = "" | "one" | "two" | "three";
+export type frequencyUnit = "" | "day" | "week" | "month";
+export type frequencyTuple = [frequencyNumber, frequencyUnit];
+
 export type Habit = {
     id: string;
     title: string;
     description: string;
-    frequency: ["" | "one" | "two" | "three", "" | "day" | "week" | "month"];
+    frequency: frequencyTuple;
     schedule: Date[];
     counter: number;
     streak: number;
     lastCompleted: number;
     doneToday: boolean;
+    updatedAt: number;
   };
 
   export const AddDefaultHabit: Habit = {
@@ -19,7 +24,8 @@ export type Habit = {
     streak: 0,
     lastCompleted: Date.now(),
     doneToday: false,
-    schedule: []
+    schedule: [],
+    updatedAt: Math.floor(Date.now() / 1000), // Unix timestamp in seconds
   };
 
   export type HabitLog = {

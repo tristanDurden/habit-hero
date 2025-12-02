@@ -17,4 +17,3 @@ ALTER TABLE `HabitLog` DROP PRIMARY KEY,
     ADD PRIMARY KEY (`habitId`, `date`, `userId`);
 
 -- AddForeignKey
-ALTER TABLE `Habit` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

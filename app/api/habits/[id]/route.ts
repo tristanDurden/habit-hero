@@ -26,7 +26,15 @@ export async function DELETE(
   if (habit.user.email !== session.user.email) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-
-  await prisma.habit.delete({ where: { id: habitId } });
+  try {
+    await prisma.habit.delete({ where: { id: habitId } });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Failed to create habit:', error);
+    return NextResponse.json(
+      { error: 'Failed to create habit', details: message },
+      { status: 500 }
+    );
+  }
   return NextResponse.json({ success: true });
 }

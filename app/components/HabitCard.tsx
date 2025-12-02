@@ -27,23 +27,27 @@ import isReadyToComplete, {
 
 import { Progress } from "@/components/ui/progress";
 import { HabitInfo } from "./HabitInfo";
-import { v4 as uuidv4 } from "uuid";
-import { id } from "date-fns/locale";
+import { useOnlineStatus } from "../providers/online-status";
 
 type Props = {
   habit: Habit;
 };
 
 export default function HabitCard({ habit }: Props) {
+  //online const
+  const { isOnline } = useOnlineStatus();
   // habitStore functnions
   const removeHabit = useHabitStore((state) => state.removeHabit);
   const updateHabit = useHabitStore((state) => state.updateHabit);
   const updateHabitLog = useHabitStore((state) => state.updateHabitLog);
+  const pushQueue = useHabitStore((state) => state.pushQueue);
 
   const isTimePassed: boolean = isReadyToComplete(habit);
 
   //const
-  const lastCompletedDate = new Date(habit.lastCompleted);
+  const lastCompletedDate = habit.lastCompleted
+    ? new Date(habit.lastCompleted)
+    : new Date();
   const frequencyNumber = numberTranslater[habit.frequency[0]];
   //progress variable
   const progress =
@@ -53,13 +57,46 @@ export default function HabitCard({ habit }: Props) {
 
   //  checking if time passed to complete habit
   useEffect(() => {
+    //fetch function for inside useEffect usage.
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/api/habits/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...habit,
+            counter: 0,
+            doneToday: false,
+          }),
+        });
+        if (!response.ok) {
+          throw new Error(`Http error is: ${response.status}`);
+        }
+      } catch (err: unknown) {
+        console.log("uknown error: ", err);
+      }
+    };
+    // start from checking is time passed already
     if (isTimePassed) {
       //  alert if habits are waiting for completion
       toast(`You habit - "${habit.title}" - is waiting to be done!`, {
         position: "bottom-center",
         description: `What are you waiting for?`,
       });
-      //  update DB
+
+      if (isOnline) {
+        fetchData();
+      } else {
+        pushQueue({
+          type: "UPDATE",
+          payload: {
+            ...habit,
+            counter: 0,
+            doneToday: false,
+          },
+          timestamp: nowDate().toISOString(),
+        });
+      }
       updateHabit({
         ...habit,
         counter: 0,
@@ -71,6 +108,19 @@ export default function HabitCard({ habit }: Props) {
     const msUntilNextScheduled = msUntilNextScheduledDay(habit);
 
     const timer = setTimeout(() => {
+      if (isOnline) {
+        fetchData();
+      } else {
+        pushQueue({
+          type: "UPDATE",
+          payload: {
+            ...habit,
+            counter: 0,
+            doneToday: false,
+          },
+          timestamp: nowDate().toISOString(),
+        });
+      }
       updateHabit({
         ...habit,
         counter: 0,
@@ -85,22 +135,44 @@ export default function HabitCard({ habit }: Props) {
 
   // handle deletion of habit
   const handleDeletion = async (id: string) => {
+    if (isOnline) {
+      // If online: call API, then remove from store
+      try {
+        const response1 = await fetch(`/api/habits/${id}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id }),
+        });
+        const response2 = await fetch("/api/habitlog", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ habitId: id }),
+        });
+        if (!response1.ok || !response2.ok) {
+          throw new Error("Failed to delete habit");
+        }
+      } catch {
+        toast.error("Failed to delete habit", {
+          description: "Please try again later",
+          position: "top-center",
+        });
+        return;
+      }
+    } else {
+      pushQueue({
+        type: "DELETE",
+        payload: { id: id },
+        timestamp: nowDate().toISOString(),
+      });
+    }
     removeHabit(id);
-    await fetch("/api/habitlog", {
-      method: "DELETE",
-      headers: { "Cntent-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
 
-    await fetch(`/api/habits/${id}`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
     toast(`You deleted your "${habit.title}"`, {
       position: "bottom-left",
       description: `I guess we will never know what you made of!`,
     });
+    // Dispatch custom event to trigger refetch in dashboard
+    window.dispatchEvent(new CustomEvent("habitUpdated"));
   };
 
   // click on the complete button
@@ -115,35 +187,7 @@ export default function HabitCard({ habit }: Props) {
 
       // updating the button for day frequency
       if (habit.frequency[1] === "day") {
-        //local vars
-
-        console.log("click!");
-        updateHabitLog(habit.id, todayKey(nowDate()));
-        await fetch("api/habitlog", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            habitId: habit.id,
-            date: todayKey(nowDate()),
-            count: newCounter,
-          }),
-        });
-        await fetch("api/habits", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...habit,
-            counter: newCounter,
-            lastCompleted: now(),
-            streak: checkFinish
-              ? keepDayStreak(habit)
-                ? habit.streak + 1
-                : 1
-              : habit.streak,
-            doneToday: checkFinish ? true : habit.doneToday,
-          }),
-        });
-        updateHabit({
+        const updatedHabit: Habit = {
           ...habit,
           counter: newCounter,
           lastCompleted: now(),
@@ -153,44 +197,116 @@ export default function HabitCard({ habit }: Props) {
               : 1
             : habit.streak,
           doneToday: checkFinish ? true : habit.doneToday,
-        });
-      } else if (habit.frequency[1] === "week") {
+        };
+        //checking for online
+        if (isOnline) {
+          try {
+            const response1 = await fetch("/api/habits", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(updatedHabit),
+            });
+            const response2 = await fetch("/api/habitlog", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                habitId: habit.id,
+                date: todayKey(nowDate()),
+                count: newCounter,
+              }),
+            });
+            if (!response1.ok || !response2.ok) {
+              throw new Error("Update failed");
+            }
+          } catch {
+            toast.error("Failed to update habit", {
+              description: "Please try again later",
+              position: "top-center",
+            });
+            return;
+          }
+        } else {
+          //have to push to jobs for updating the habit db and habitlog db
+          pushQueue({
+            type: "UPDATE",
+            payload: { ...updatedHabit },
+            timestamp: nowDate().toISOString(),
+          });
+          pushQueue({
+            type: "LOGGING",
+            payload: {
+              habitId: updatedHabit.id,
+              date: todayKey(nowDate()),
+              count: updatedHabit.counter,
+            },
+            timestamp: nowDate().toISOString(),
+          });
+        }
+        console.log("click!");
         updateHabitLog(habit.id, todayKey(nowDate()));
-        await fetch("api/habitlog", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            habitId: habit.id,
-            date: todayKey(nowDate()),
-            count: newCounter,
-          }),
-        });
-        await fetch("api/habits", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...habit,
-            counter: newCounter,
-            lastCompleted: now(),
-            streak: keepWeekStreak(habit) ? habit.streak + 1 : 1,
-            doneToday: true,
-          }),
-        });
-        updateHabit({
+        updateHabit(updatedHabit);
+        // Dispatch custom event to trigger refetch in dashboard
+        window.dispatchEvent(new CustomEvent("habitUpdated"));
+        // WEEK LOGIC
+      } else if (habit.frequency[1] === "week") {
+        const updatedHabit: Habit = {
           ...habit,
-          //streak is  calculating right
-          streak: keepWeekStreak(habit) ? habit.streak + 1 : 1,
-          lastCompleted: now(),
           counter: newCounter,
+          lastCompleted: now(),
+          streak: keepWeekStreak(habit) ? habit.streak + 1 : 1,
           doneToday: true,
-        });
+        };
+        if (isOnline) {
+          try {
+            const response1 = await fetch("/api/habitlog", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                habitId: habit.id,
+                date: todayKey(nowDate()),
+                count: newCounter,
+              }),
+            });
+            const response2 = await fetch("/api/habits", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(updatedHabit),
+            });
+            if (!response1.ok || !response2.ok) {
+              throw new Error("Updating failed");
+            }
+          } catch {
+            toast.error("Failed to update habit", {
+              description: "Please try again later",
+              position: "top-center",
+            });
+            return;
+          }
+        } else {
+          pushQueue({
+            type: "UPDATE",
+            payload: { ...updatedHabit },
+            timestamp: nowDate().toISOString(),
+          });
+          pushQueue({
+            type: "LOGGING",
+            payload: {
+              habitId: updatedHabit.id,
+              date: todayKey(nowDate()),
+              count: updatedHabit.counter,
+            },
+            timestamp: nowDate().toISOString(),
+          });
+        }
+        updateHabitLog(habit.id, todayKey(nowDate()));
+        updateHabit(updatedHabit);
       }
-
-      //updateHabitLog(habit.id);
       toast(`You completed your "${habit.title}"`, {
         position: "top-center",
         description: `Great Work!`,
       });
+      // Dispatch custom event to trigger refetch in dashboard
+      window.dispatchEvent(new CustomEvent("habitUpdated"));
     } else {
       toast(`You ve already completed your "${habit.title} for now"`, {
         position: "top-center",
@@ -222,10 +338,20 @@ export default function HabitCard({ habit }: Props) {
             Frequency: {habit.frequency[0]} per {habit.frequency[1]}
           </p>
           <p>Your streak: {habit.streak}</p>
+
           <p>
-            LastCompleted: {lastCompletedDate.toLocaleString()} -{" "}
-            {getWeekDay(lastCompletedDate)} -{" "}
-            {howManyDaysLeftFromLast(lastCompletedDate, nowDate())}
+            LastCompleted:{" "}
+            {/* Need to add createdAt parameter to db and store and type to control that with ease and accuracy */}
+            {/* or just use habitlog query. if there is no result so it s never completed */}
+            {!useHabitStore.getState().habitLog[habit.id] ? (
+              "never completed"
+            ) : (
+              <>
+                {lastCompletedDate.toLocaleString()} -{" "}
+                {getWeekDay(lastCompletedDate)} -{" "}
+                {howManyDaysLeftFromLast(lastCompletedDate, nowDate())}
+              </>
+            )}
           </p>
           {habit.frequency[1] === "week" && (
             <>

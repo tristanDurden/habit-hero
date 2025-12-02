@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { nowInSeconds } from "@/lib/timeCounter";
 
 
 export async function POST(req: NextRequest) {
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
     if (!userId) {
         return NextResponse.json({error: "No user found"}, {status: 404});
     }
-    const body: {id: string, habitId: string, date: string, count: number} = await req.json();
+    const body: {habitId: string, date: string, count: number} = await req.json();
 
     // find if the log already exist
     // const oldLog = await prisma.habitLog.findUnique({
@@ -43,18 +44,20 @@ export async function POST(req: NextRequest) {
             },
             update: {
                 count: body.count,
+                updatedAt: nowInSeconds(),
             },
             create: {
                 habitId: body.habitId,
                 date: body.date,
                 count: body.count,
-                userId: userId
+                userId: userId,
+                updatedAt: nowInSeconds(),
             }
         })
         return NextResponse.json(newLog);
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Uknown error";
-        console.log("Cant put log", error);
+        console.log("Can't put log", error);
         return NextResponse.json({error:"cant put log into",details: message}, {status: 500})
     }
 

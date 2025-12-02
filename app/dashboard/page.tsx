@@ -1,15 +1,18 @@
 "use client";
-import { getAuthSession } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import HabitCard from "../components/HabitCard";
-import { Habit } from "@prisma/client";
+import { Habit as DbHabit } from "@prisma/client";
 import { Habit as UiHabit } from "../../lib/types";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { dbHabitToUi } from "@/lib/dbformatting";
+import useHabitStore from "../habitStore";
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession();
-  const [habitsArray, setHabitsArray] = useState([]);
+  const { data: session } = useSession();
+  const [habitsArray, setHabitsArray] = useState<DbHabit[]>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const isOnline = useHabitStore((state) => state.isOnline);
+
   // get habits from db
   useEffect(() => {
     const fetchHabits = async () => {
@@ -24,33 +27,27 @@ export default function DashboardPage() {
       setHabitsArray(data || []);
     };
     fetchHabits();
+  }, [refreshTrigger]);
+
+  // Listen for custom event when habits are updated
+  useEffect(() => {
+    const handleHabitUpdate = () => {
+      setRefreshTrigger((prev) => prev + 1);
+    };
+
+    window.addEventListener("habitUpdated", handleHabitUpdate);
+    return () => {
+      window.removeEventListener("habitUpdated", handleHabitUpdate);
+    };
   }, []);
 
   console.log("array", habitsArray);
-  const habits = habitsArray;
+  const localHabits = useHabitStore((state) => state.habits);
+  const habits: UiHabit[] =
+    habitsArray.length > 0
+      ? habitsArray.map((dbhabit: DbHabit) => dbHabitToUi(dbhabit))
+      : localHabits;
   //reffactoring object for Habit Card
-  const refactoredHabits: UiHabit[] = habits.map((habit: Habit) => {
-    const schedule = habit.schedule.split("/").map((date) => new Date(date));
-    const frequency = habit.frequency.split("/");
-    return {
-      id: habit.id,
-      title: habit.title,
-      description: habit.description,
-      frequency: frequency as [
-        "" | "one" | "two" | "three",
-        "" | "day" | "week" | "month"
-      ],
-      schedule: schedule,
-      counter: habit.counter,
-      streak: habit.streak,
-      lastCompleted: Number(habit.lastCompleted) * 1000,
-      doneToday: habit.doneToday,
-    };
-  });
-
-  // if (!session) {
-  //   redirect("/api/auth/signin"); // ⬅ redirect to GitHub login
-  // }
 
   return (
     <main className="p-6">
@@ -59,7 +56,7 @@ export default function DashboardPage() {
         This is your private dashboard — only visible when logged in.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {refactoredHabits.map((habit) => (
+        {habits.map((habit) => (
           <HabitCard key={habit.id} habit={habit} />
         ))}
       </div>

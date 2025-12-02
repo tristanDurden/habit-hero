@@ -71,16 +71,18 @@ model Habit {
   lastCompleted Int     @default(0)
   doneToday     Boolean @default(false)
   userId        String
+  updatedAt     Int
   user          User    @relation(fields: [userId], references: [id])
 
   habitLog HabitLog[]
 }
 
 model HabitLog {
-  habitId String
-  date    String
-  count   Int    @default(0)
-  userId  String
+  habitId   String
+  date      String
+  count     Int    @default(0)
+  userId    String
+  updatedAt Int
 
   habit Habit @relation(fields: [habitId], references: [id])
   user  User  @relation(fields: [userId], references: [id])

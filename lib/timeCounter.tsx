@@ -10,6 +10,11 @@ import {
 export const now = () => {
   return Date.now();
 };
+
+// Return Unix timestamp in seconds (for database INTEGER fields)
+export const nowInSeconds = () => {
+  return Math.floor(Date.now() / 1000);
+};
 export const nowDate = () => {
   return new Date();
 };
@@ -62,7 +67,7 @@ export default function isReadyToComplete(habit: Habit): boolean {
 // needs to check for  month!
 export function keepDayStreak(habit: Habit): boolean {
   const lastCompleted = habit.lastCompleted;
-  if (midnight() - lastCompleted < DAYDURATION) {
+  if (midnight() - lastCompleted < 0) {
     return true;
   } else {
     return false;
