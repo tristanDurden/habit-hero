@@ -15,31 +15,32 @@ import { Trash } from "lucide-react";
 import HabitDialog from "./HabitDialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Timer } from "./Timer";
 import isReadyToComplete, {
   howManyDaysLeftFromLast,
-  keepDayStreak,
-  keepWeekStreak,
   msUntilNextScheduledDay,
-  now,
   nowDate,
-  todayKey,
 } from "@/lib/timeCounter";
 
 import { Progress } from "@/components/ui/progress";
 import { HabitInfo } from "./HabitInfo";
 import { useOnlineStatus } from "../providers/online-status";
+import { useHabitCompletion } from "../hooks/habits/useHabitCompletion";
+import { useHabitDeletion } from "../hooks/habits/useHabitDeletion";
 
 type Props = {
   habit: Habit;
 };
 
 export default function HabitCard({ habit }: Props) {
+  // hooks consts
+  const completeHabit = useHabitCompletion();
+  const deleteHabit = useHabitDeletion();
+
   //online const
   const { isOnline } = useOnlineStatus();
   // habitStore functnions
-  const removeHabit = useHabitStore((state) => state.removeHabit);
   const updateHabit = useHabitStore((state) => state.updateHabit);
-  const updateHabitLog = useHabitStore((state) => state.updateHabitLog);
   const pushQueue = useHabitStore((state) => state.pushQueue);
 
   const isTimePassed: boolean = isReadyToComplete(habit);
@@ -134,185 +135,13 @@ export default function HabitCard({ habit }: Props) {
   }, [habit.lastCompleted]);
 
   // handle deletion of habit
-  const handleDeletion = async (id: string) => {
-    if (isOnline) {
-      // If online: call API, then remove from store
-      try {
-        const response1 = await fetch(`/api/habits/${id}`, {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id }),
-        });
-        const response2 = await fetch("/api/habitlog", {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ habitId: id }),
-        });
-        if (!response1.ok || !response2.ok) {
-          throw new Error("Failed to delete habit");
-        }
-      } catch {
-        toast.error("Failed to delete habit", {
-          description: "Please try again later",
-          position: "top-center",
-        });
-        return;
-      }
-    } else {
-      pushQueue({
-        type: "DELETE",
-        payload: { id: id },
-        timestamp: nowDate().toISOString(),
-      });
-    }
-    removeHabit(id);
-
-    toast(`You deleted your "${habit.title}"`, {
-      position: "bottom-left",
-      description: `I guess we will never know what you made of!`,
-    });
-    // Dispatch custom event to trigger refetch in dashboard
-    window.dispatchEvent(new CustomEvent("habitUpdated"));
+  const handleDeletion = () => {
+    deleteHabit(habit.id);
   };
 
   // click on the complete button
-  //  update DB
-  const handleCompleted = async () => {
-    console.log(habit);
-    const newCounter = habit.counter + 1;
-    const checkFinish = newCounter === frequencyNumber;
-
-    if (habit.doneToday === false) {
-      //need to get a seperate function to handle to keep code clean
-
-      // updating the button for day frequency
-      if (habit.frequency[1] === "day") {
-        const updatedHabit: Habit = {
-          ...habit,
-          counter: newCounter,
-          lastCompleted: now(),
-          streak: checkFinish
-            ? keepDayStreak(habit)
-              ? habit.streak + 1
-              : 1
-            : habit.streak,
-          doneToday: checkFinish ? true : habit.doneToday,
-        };
-        //checking for online
-        if (isOnline) {
-          try {
-            const response1 = await fetch("/api/habits", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(updatedHabit),
-            });
-            const response2 = await fetch("/api/habitlog", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                habitId: habit.id,
-                date: todayKey(nowDate()),
-                count: newCounter,
-              }),
-            });
-            if (!response1.ok || !response2.ok) {
-              throw new Error("Update failed");
-            }
-          } catch {
-            toast.error("Failed to update habit", {
-              description: "Please try again later",
-              position: "top-center",
-            });
-            return;
-          }
-        } else {
-          //have to push to jobs for updating the habit db and habitlog db
-          pushQueue({
-            type: "UPDATE",
-            payload: { ...updatedHabit },
-            timestamp: nowDate().toISOString(),
-          });
-          pushQueue({
-            type: "LOGGING",
-            payload: {
-              habitId: updatedHabit.id,
-              date: todayKey(nowDate()),
-              count: updatedHabit.counter,
-            },
-            timestamp: nowDate().toISOString(),
-          });
-        }
-        console.log("click!");
-        updateHabitLog(habit.id, todayKey(nowDate()));
-        updateHabit(updatedHabit);
-        // Dispatch custom event to trigger refetch in dashboard
-        window.dispatchEvent(new CustomEvent("habitUpdated"));
-        // WEEK LOGIC
-      } else if (habit.frequency[1] === "week") {
-        const updatedHabit: Habit = {
-          ...habit,
-          counter: newCounter,
-          lastCompleted: now(),
-          streak: keepWeekStreak(habit) ? habit.streak + 1 : 1,
-          doneToday: true,
-        };
-        if (isOnline) {
-          try {
-            const response1 = await fetch("/api/habitlog", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                habitId: habit.id,
-                date: todayKey(nowDate()),
-                count: newCounter,
-              }),
-            });
-            const response2 = await fetch("/api/habits", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(updatedHabit),
-            });
-            if (!response1.ok || !response2.ok) {
-              throw new Error("Updating failed");
-            }
-          } catch {
-            toast.error("Failed to update habit", {
-              description: "Please try again later",
-              position: "top-center",
-            });
-            return;
-          }
-        } else {
-          pushQueue({
-            type: "UPDATE",
-            payload: { ...updatedHabit },
-            timestamp: nowDate().toISOString(),
-          });
-          pushQueue({
-            type: "LOGGING",
-            payload: {
-              habitId: updatedHabit.id,
-              date: todayKey(nowDate()),
-              count: updatedHabit.counter,
-            },
-            timestamp: nowDate().toISOString(),
-          });
-        }
-        updateHabitLog(habit.id, todayKey(nowDate()));
-        updateHabit(updatedHabit);
-      }
-      toast(`You completed your "${habit.title}"`, {
-        position: "top-center",
-        description: `Great Work!`,
-      });
-      // Dispatch custom event to trigger refetch in dashboard
-      window.dispatchEvent(new CustomEvent("habitUpdated"));
-    } else {
-      toast(`You ve already completed your "${habit.title} for now"`, {
-        position: "top-center",
-        description: `Come back later`,
-      });
-    }
+  const handleCompleted = () => {
+    completeHabit(habit);
   };
 
   return (
@@ -325,10 +154,7 @@ export default function HabitCard({ habit }: Props) {
             <HabitInfo habit={habit} />
             <HabitDialog mode="update" habit={habit} />
 
-            <button
-              onClick={() => handleDeletion(habit.id)}
-              className="cursor-pointer"
-            >
+            <button onClick={handleDeletion} className="cursor-pointer">
               <Trash size={20} />
             </button>
           </CardAction>
@@ -364,14 +190,17 @@ export default function HabitCard({ habit }: Props) {
           )}
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
-          <Button
-            type="submit"
-            onClick={handleCompleted}
-            variant={habit.doneToday ? "ghost" : "default"}
-            className=""
-          >
-            {habit.doneToday ? "Completed for now!" : `Press to complete!`}
-          </Button>
+          <div className="grid grid-cols-6 gap-1">
+            <Button
+              type="submit"
+              onClick={handleCompleted}
+              variant={habit.doneToday ? "ghost" : "default"}
+              className="col-span-5"
+            >
+              {habit.doneToday ? "Completed for now!" : `Press to complete!`}
+            </Button>
+            <Timer />
+          </div>
           <Progress value={progress} className="w-[75%]" />
         </CardFooter>
       </Card>

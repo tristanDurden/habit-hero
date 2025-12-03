@@ -9,14 +9,14 @@ import {
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import useHabitStore from "../habitStore";
 import { DialogClose } from "@/components/ui/dialog";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
 import { Habit as uiHabit } from "@/lib/types";
 import { Calendar04 } from "./Calendar";
 import { now, nowDate, nowInSeconds } from "@/lib/timeCounter";
-import { useOnlineStatus } from "../providers/online-status";
+import { useHabitCreation } from "../hooks/habits/useHabitCreation";
+import { useHabitUpdate } from "../hooks/habits/useHabitUpdate";
 
 type Props = {
   habit: uiHabit;
@@ -32,12 +32,9 @@ export default function NewHabit({ habit, mode }: Props) {
     doneToday: false,
     schedule: [nowDate()],
   });
-  // online const
-  const { isOnline } = useOnlineStatus();
   // store const
-  const updateHabit = useHabitStore((state) => state.updateHabit);
-  const addHabit = useHabitStore((state) => state.addHabit);
-  const pushQueue = useHabitStore((state) => state.pushQueue);
+  const createHabit = useHabitCreation();
+  const updateHabit = useHabitUpdate();
 
   const inputHabit: uiHabit = {
     id: mode === "update" ? habit.id : uuidv4(),
@@ -52,7 +49,7 @@ export default function NewHabit({ habit, mode }: Props) {
     updatedAt: nowInSeconds(),
   };
 
-  const handleSaveHabit = async () => {
+  const handleSaveHabit = () => {
     // Validate form
     if (!form.title.trim()) {
       toast.error("Title is required", {
@@ -63,76 +60,9 @@ export default function NewHabit({ habit, mode }: Props) {
     }
 
     if (mode === "add") {
-      if (isOnline) {
-        try {
-          const response = await fetch("/api/habits", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              ...inputHabit,
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error("Failed to create habit");
-          }
-        } catch {
-          toast.error("Failed to save habit", {
-            description: "Please try again later",
-            position: "top-center",
-          });
-          return;
-        }
-      } else {
-        pushQueue({
-          type: "CREATE",
-          payload: inputHabit,
-          timestamp: nowDate().toISOString(),
-        });
-      }
-
-      addHabit(inputHabit);
-      toast(`You've added "${inputHabit.title}" to your habits list`, {
-        description: `Start to accomplish it`,
-        position: "top-center",
-      });
-      // Dispatch custom event to trigger refetch in dashboard
-      window.dispatchEvent(new CustomEvent("habitUpdated"));
+      createHabit(inputHabit);
     } else {
-      if (isOnline) {
-        try {
-          const response = await fetch("/api/habits", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              ...inputHabit,
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error("Failed to update habit");
-          }
-        } catch {
-          toast.error("Failed to update habit", {
-            description: "Please try again later",
-            position: "top-center",
-          });
-          return;
-        }
-      } else {
-        pushQueue({
-          type: "UPDATE",
-          payload: inputHabit,
-          timestamp: nowDate().toISOString(),
-        });
-      }
       updateHabit(inputHabit);
-      toast(`You've updated your "${inputHabit.title}" habit`, {
-        description: `Proceed to accomplishing your dream`,
-        position: "top-center",
-      });
-      // Dispatch custom event to trigger refetch in dashboard
-      window.dispatchEvent(new CustomEvent("habitUpdated"));
     }
   };
 

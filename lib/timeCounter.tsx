@@ -67,7 +67,7 @@ export default function isReadyToComplete(habit: Habit): boolean {
 // needs to check for  month!
 export function keepDayStreak(habit: Habit): boolean {
   const lastCompleted = habit.lastCompleted;
-  if (midnight() - lastCompleted < 0) {
+  if (midnight() - lastCompleted + DAYDURATION < 0) {
     return true;
   } else {
     return false;
