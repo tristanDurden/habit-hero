@@ -7,7 +7,10 @@ describe("useCountdown (functional)", () => {
   });
 
   afterEach(() => {
-    jest.runOnlyPendingTimers();
+    // Ensure any timer-driven state updates are wrapped in act to avoid warnings.
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
     jest.useRealTimers();
   });
 

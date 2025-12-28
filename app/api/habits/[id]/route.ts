@@ -27,12 +27,21 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   try {
-    await prisma.habit.delete({ where: { id: habitId } });
+    // Use a transaction to ensure both deletions happen atomically
+    // Delete habit logs first, then the habit (to respect foreign key constraints)
+    await prisma.$transaction(async (tx) => {
+      // First, delete all habit logs associated with this habit
+      await tx.habitLog.deleteMany({
+        where: { habitId: habitId },
+      });
+      // Then delete the habit itself
+      await tx.habit.delete({ where: { id: habitId } });
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Failed to create habit:', error);
+    console.error('Failed to delete habit:', error);
     return NextResponse.json(
-      { error: 'Failed to create habit', details: message },
+      { error: 'Failed to delete habit', details: message },
       { status: 500 }
     );
   }

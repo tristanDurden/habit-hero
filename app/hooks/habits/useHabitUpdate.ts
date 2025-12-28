@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 export function useHabitUpdate() {
     const {isOnline} = useOnlineStatus();
     const pushQueue = useHabitStore((s) => s.pushQueue);
-    const updateHabitStore = useHabitStore((s) => s.updateHabit);
+    const updateHabit = useHabitStore((s) => s.updateHabit);
     
     return async function updateHabit(habit:uiHabit) {
         if (isOnline) {
@@ -39,7 +39,7 @@ export function useHabitUpdate() {
               timestamp: nowDate().toISOString(),
             });
           }
-          updateHabitStore(habit);
+          updateHabit(habit);
           toast(`You've updated your "${habit.title}" habit`, {
             description: `Proceed to accomplishing your dream`,
             position: "top-center",

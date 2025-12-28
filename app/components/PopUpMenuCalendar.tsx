@@ -28,27 +28,29 @@ export function PopUpMenu({ chosenHabits, setChosenHabits }: Props) {
     }
   }
   return (
-    <Popover>
+    <Popover modal={true}>
       <PopoverTrigger asChild>
         <Button variant="outline">Choose habits</Button>
       </PopoverTrigger>
       <PopoverContent className="w-80">
-        <div className="flex flex-col gap-5">
-          {habits.map((item) => {
-            return (
-              <Button
-                variant={
-                  chosenHabits.some((h) => h.id === item.id)
-                    ? "outline"
-                    : "ghost"
-                }
-                key={item.id}
-                onClick={() => handleClick(item)}
-              >
-                {item.title}
-              </Button>
-            );
-          })}
+        <div
+          className="flex flex-col gap-2 overflow-y-auto pointer-events-auto"
+          style={{ maxHeight: "220px" }} // ~5 habits
+        >
+          {habits.map((habit) => (
+            <Button
+              key={habit.id}
+              variant={
+                chosenHabits.some((h) => h.id === habit.id)
+                  ? "outline"
+                  : "ghost"
+              }
+              onClick={() => handleClick(habit)}
+              className="w-full"
+            >
+              {habit.title}
+            </Button>
+          ))}
         </div>
       </PopoverContent>
     </Popover>

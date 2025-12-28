@@ -18,18 +18,13 @@ export function useHabitDeletion() {
         
         if (isOnline) {
             // If online: call API, then remove from store
+            // The backend now handles both habit and habitlog deletion atomically
             try {
-              const response1 = await fetch(`/api/habits/${id}`, {
+              const response = await fetch(`/api/habits/${id}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id }),
               });
-              const response2 = await fetch("/api/habitlog", {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ habitId: id }),
-              });
-              if (!response1.ok || !response2.ok) {
+              if (!response.ok) {
                 throw new Error("Failed to delete habit");
               }
             } catch {

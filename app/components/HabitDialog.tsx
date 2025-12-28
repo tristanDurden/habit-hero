@@ -28,7 +28,11 @@ export default function HabitDialog({ mode, habit }: Props) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>
-          <DialogDescription></DialogDescription>
+          <DialogDescription>
+            {mode === "add"
+              ? "Create a new habit to track your progress."
+              : "Update your habit details and settings."}
+          </DialogDescription>
         </DialogHeader>
         {/* Component with inputs */}
         <NewHabit habit={habit} mode={mode} />

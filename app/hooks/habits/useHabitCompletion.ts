@@ -39,21 +39,19 @@ export function useHabitCompletion() {
         //checking for online
         if (isOnline) {
           try {
-            const response1 = await fetch("/api/habits", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(updatedHabit),
-            });
-            const response2 = await fetch("/api/habitlog", {
+            // Send habit update and log completion in a single atomic request
+            const response = await fetch("/api/habits", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                habitId: habit.id,
-                date: todayKey(nowDate()),
-                count: newCounter,
+                ...updatedHabit,
+                logCompletion: {
+                  date: todayKey(nowDate()),
+                  count: newCounter,
+                },
               }),
             });
-            if (!response1.ok || !response2.ok) {
+            if (!response.ok) {
               throw new Error("Update failed");
             }
           } catch {
@@ -64,18 +62,15 @@ export function useHabitCompletion() {
             return;
           }
         } else {
-          //have to push to jobs for updating the habit db and habitlog db
+          // Queue atomic update with log (same as online behavior)
           pushQueue({
-            type: "UPDATE",
-            payload: { ...updatedHabit },
-            timestamp: nowDate().toISOString(),
-          });
-          pushQueue({
-            type: "LOGGING",
+            type: "HABIT_UPDATE_WITH_LOG",
             payload: {
-              habitId: updatedHabit.id,
-              date: todayKey(nowDate()),
-              count: updatedHabit.counter,
+              habit: { ...updatedHabit },
+              logCompletion: {
+                date: todayKey(nowDate()),
+                count: newCounter,
+              },
             },
             timestamp: nowDate().toISOString(),
           });
@@ -83,8 +78,6 @@ export function useHabitCompletion() {
         console.log("click!");
         updateHabitLog(habit.id, todayKey(nowDate()));
         updateHabit(updatedHabit);
-        // Dispatch custom event to trigger refetch in dashboard
-        window.dispatchEvent(new CustomEvent("habitUpdated"));
         // WEEK LOGIC
       } else if (habit.frequency[1] === "week") {
         const updatedHabit: uiHabit = {
@@ -96,21 +89,19 @@ export function useHabitCompletion() {
         };
         if (isOnline) {
           try {
-            const response1 = await fetch("/api/habitlog", {
+            // Send habit update and log completion in a single atomic request
+            const response = await fetch("/api/habits", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                habitId: habit.id,
-                date: todayKey(nowDate()),
-                count: newCounter,
+                ...updatedHabit,
+                logCompletion: {
+                  date: todayKey(nowDate()),
+                  count: newCounter,
+                },
               }),
             });
-            const response2 = await fetch("/api/habits", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(updatedHabit),
-            });
-            if (!response1.ok || !response2.ok) {
+            if (!response.ok) {
               throw new Error("Updating failed");
             }
           } catch {
@@ -121,17 +112,15 @@ export function useHabitCompletion() {
             return;
           }
         } else {
+          // Queue atomic update with log (same as online behavior)
           pushQueue({
-            type: "UPDATE",
-            payload: { ...updatedHabit },
-            timestamp: nowDate().toISOString(),
-          });
-          pushQueue({
-            type: "LOGGING",
+            type: "HABIT_UPDATE_WITH_LOG",
             payload: {
-              habitId: updatedHabit.id,
-              date: todayKey(nowDate()),
-              count: updatedHabit.counter,
+              habit: { ...updatedHabit },
+              logCompletion: {
+                date: todayKey(nowDate()),
+                count: newCounter,
+              },
             },
             timestamp: nowDate().toISOString(),
           });
@@ -143,8 +132,10 @@ export function useHabitCompletion() {
         position: "top-center",
         description: `Great Work!`,
       });
-      // Dispatch custom event to trigger refetch in dashboard
-      window.dispatchEvent(new CustomEvent("habitUpdated"));
+      // Dispatch after a small delay to ensure API has processed the update
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("habitUpdated"));
+      }, 100);
     } else {
       toast(`You ve already completed your "${habit.title} for now"`, {
         position: "top-center",

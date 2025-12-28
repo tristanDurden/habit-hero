@@ -1,6 +1,6 @@
 import { Habit, HabitLog } from "./types";
 
-export function activityReducerForDay(
+export function activityReducerCounterForDay(
   habitLog: HabitLog,
   date: string
 ): number {
@@ -13,6 +13,21 @@ export function activityReducerForDay(
     });
   });
   return counter;
+}
+
+export function activityReducerDurationForDay(
+  habitLog: HabitLog,
+  date: string
+): number {
+  let duration = 0;
+  Object.values(habitLog).forEach((habitArray) => {
+    habitArray.forEach((entry) => {
+      if (date === entry.date) {
+        duration += entry.duration;
+      }
+    });
+  });
+  return duration;
 }
 
 export function mapTasksForCalendar(habitLog: HabitLog, habits: Habit[]) {

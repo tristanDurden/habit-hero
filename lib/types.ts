@@ -1,3 +1,5 @@
+import { Timer } from "@/app/types/timer";
+
 export type frequencyNumber = "" | "one" | "two" | "three";
 export type frequencyUnit = "" | "day" | "week" | "month";
 export type frequencyTuple = [frequencyNumber, frequencyUnit];
@@ -13,13 +15,14 @@ export type Habit = {
     lastCompleted: number;
     doneToday: boolean;
     updatedAt: number;
+    timer?: Timer;
   };
 
   export const AddDefaultHabit: Habit = {
     id: "",
     title: "Enter the title",
     description: "Enter the description of habit",
-    frequency: ["", ""] as Habit["frequency"],
+    frequency: ["", ""] as frequencyTuple,
     counter: 0,
     streak: 0,
     lastCompleted: Date.now(),
@@ -29,8 +32,16 @@ export type Habit = {
   };
 
   export type HabitLog = {
-    [habitId: string]: Array<{date: string, count: number}>;
+    [habitId: string]: Array<{date: string, count: number, duration: number}>;
   };
+
+  export type Folder = {
+    id: string;
+    name: string;
+    habitIds: string[]; // Store only IDs, not full habit objects
+    updatedAt: number;
+  }
+
   export const numberTranslater: Record<string, number> = {
     "one": 1,
     "two": 2,

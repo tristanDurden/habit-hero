@@ -1,7 +1,10 @@
 import React from "react";
 import useHabitStore from "../habitStore";
 import { todayKey } from "@/lib/timeCounter";
-import { activityReducerForDay } from "@/lib/habitlogFunc";
+import {
+  activityReducerDurationForDay,
+  activityReducerCounterForDay,
+} from "@/lib/habitlogFunc";
 
 export default function ActivityTable() {
   //  store consts
@@ -16,15 +19,21 @@ export default function ActivityTable() {
   const todayString = todayKey(now);
   const yesterdayString = todayKey(yesterday);
   //vars
-  const counterForToday = activityReducerForDay(habitLog, todayString);
-  const counterForYesterday = activityReducerForDay(habitLog, yesterdayString);
+  const counterForToday = activityReducerCounterForDay(habitLog, todayString);
+  const counterForYesterday = activityReducerCounterForDay(
+    habitLog,
+    yesterdayString
+  );
+  const durationForToday =
+    activityReducerDurationForDay(habitLog, todayString) / 1000;
 
   return (
-    <div>
+    <div className="mt-6 items-center justify-center text-center">
       <h1>ActivityTable</h1>
       <div>
         <h1>Today</h1>
         <p>You ve completed your tasks {counterForToday} times</p>
+        <p>Your total time spend: {durationForToday} seconds </p>
       </div>
       <div>
         <h1>Yesterday</h1>

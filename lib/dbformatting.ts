@@ -1,5 +1,5 @@
-import { Habit as dbHabit } from "@prisma/client";
-import { frequencyTuple, Habit as HabitUi} from "@/lib/types";
+import { Habit as dbHabit, Folder as dbFolder } from "@prisma/client";
+import { frequencyTuple, Habit as HabitUi, Folder as uiFolder } from "@/lib/types";
 
 export function scheduleConcat(array: Date[]): string {
     return Array.isArray(array) ? array.map((d: unknown) => {
@@ -69,4 +69,14 @@ export function uiHabitToDb(uiHabit: HabitUi, userId: string): dbHabit {
         userId: userId,
         updatedAt: dbUpdatedAt,
     };
+}
+export function dbFolderToUi(dbfolder: dbFolder): uiFolder {
+    const uiHabitIds = dbfolder.habitIds;
+    const uiUpdatedAt = secondsToMillis(dbfolder.updatedAt);
+    return {
+        id: dbfolder.id,
+        name: dbfolder.name,
+        habitIds: uiHabitIds as string[],
+        updatedAt: uiUpdatedAt
+    }
 }

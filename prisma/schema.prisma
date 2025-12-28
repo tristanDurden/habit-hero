@@ -24,6 +24,7 @@ model User {
 
   habits   Habit[]
   habitLog HabitLog[]
+  folders  Folder[]
 }
 
 model Account {
@@ -75,12 +76,14 @@ model Habit {
   user          User    @relation(fields: [userId], references: [id])
 
   habitLog HabitLog[]
+  folders  Folder[]
 }
 
 model HabitLog {
   habitId   String
   date      String
   count     Int    @default(0)
+  duration  Int    @default(0) // Duration in milliseconds
   userId    String
   updatedAt Int
 
@@ -88,4 +91,15 @@ model HabitLog {
   user  User  @relation(fields: [userId], references: [id])
 
   @@id([habitId, date, userId]) // only one entry per habit per day per user
+}
+
+model Folder {
+  id        String @id
+  name      String
+  userId    String
+  habitIds  Json   @db.Json
+  updatedAt Int
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habits Habit[]
 }

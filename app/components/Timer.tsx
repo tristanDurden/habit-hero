@@ -2,51 +2,73 @@
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useCountdown } from "@/hooks/use-countdown";
+import { useState, useEffect } from "react";
+import { TimerConfigForm } from "../types/timer";
+import useHabitStore from "../habitStore";
+import useTimerStore from "../timerStore";
+import TimerInputs from "./timer/TimerInputs";
+import TimerButtons from "./timer/TimerButtons";
+import TimerStatus from "./timer/TimerStatus";
 
-export function Timer() {
-  const [count, { startCountdown, stopCountdown, resetCountdown }] =
-    useCountdown({
-      countStart: 0,
-      countStop: 60,
-      intervalMs: 1000,
-      isIncrement: true,
-    });
+type Props = {
+  habitId: string;
+};
+
+export function Timer({ habitId }: Props) {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState<TimerConfigForm>({ type: "count_up" });
+  const habit = useHabitStore((s) => s.habits.find((h) => h.id === habitId));
+  const timer = habit?.timer;
+  const openTimerDialogId = useTimerStore((s) => s.openTimerDialogId);
+  const closeTimerDialog = useTimerStore((s) => s.closeTimerDialog);
+
+  // Sync local state with store
+  useEffect(() => {
+    setOpen(openTimerDialogId === habitId);
+  }, [openTimerDialogId, habitId]);
+
+  // Update store when local state changes (from DialogTrigger)
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (newOpen) {
+      useTimerStore.getState().openTimerDialog(habitId);
+    } else {
+      closeTimerDialog();
+    }
+  };
+
+  // Note: useTimerTick removed - GlobalTimerTick handles all timers to avoid multiple intervals
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="default" className="col-span-1">
-          T
-        </Button>
+        <Button>T</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Timer title</DialogTitle>
-          <DialogDescription>timer description</DialogDescription>
+          <DialogTitle>Timer Settings</DialogTitle>
+          <DialogDescription>
+            Configure and manage your timer for this habit.
+          </DialogDescription>
         </DialogHeader>
-        <div className="flex items-center gap-2">
-          <div>Time: {count}</div>
-          <Button onClick={startCountdown}>Start</Button>
-          <Button onClick={stopCountdown}>Stop</Button>
-          <Button onClick={resetCountdown}>Reset</Button>
-        </div>
-        <DialogFooter className="sm:justify-start">
-          <DialogClose asChild>
-            <Button type="button" variant="outline">
-              Close
-            </Button>
-          </DialogClose>
-        </DialogFooter>
+
+        <TimerInputs form={form} setForm={setForm} />
+        <TimerButtons
+          habitId={habitId}
+          form={form}
+          timer={timer}
+          onHide={() => {
+            setOpen(false);
+            closeTimerDialog();
+          }}
+        />
+        {timer && <TimerStatus timer={timer} />}
       </DialogContent>
     </Dialog>
   );

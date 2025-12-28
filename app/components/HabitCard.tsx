@@ -27,6 +27,7 @@ import { HabitInfo } from "./HabitInfo";
 import { useOnlineStatus } from "../providers/online-status";
 import { useHabitCompletion } from "../hooks/habits/useHabitCompletion";
 import { useHabitDeletion } from "../hooks/habits/useHabitDeletion";
+import HabitFolderDialog from "./HabitFolderDialog";
 
 type Props = {
   habit: Habit;
@@ -129,8 +130,6 @@ export default function HabitCard({ habit }: Props) {
       });
     }, msUntilNextScheduled);
 
-    console.log(timer, msUntilNextScheduled / (1000 * 60));
-
     return () => clearTimeout(timer);
   }, [habit.lastCompleted]);
 
@@ -146,20 +145,21 @@ export default function HabitCard({ habit }: Props) {
 
   return (
     <div className="">
-      <Card className="w-full max-w-xs">
+      <Card className="w-full max-w-xs h-full">
         <CardHeader>
           <CardTitle>{habit.title}</CardTitle>
           <CardDescription>{habit.description}</CardDescription>
-          <CardAction className="flex gap-2 items-center justify-center">
-            <HabitInfo habit={habit} />
+          <CardAction className="grid grid-cols-2 gap-2 items-center justify-center">
             <HabitDialog mode="update" habit={habit} />
 
             <button onClick={handleDeletion} className="cursor-pointer">
               <Trash size={20} />
             </button>
+            <HabitInfo habit={habit} />
+            <HabitFolderDialog habit={habit} />
           </CardAction>
         </CardHeader>
-        <CardContent className="border-2 border-slate-500">
+        <CardContent className="border-2 border-slate-500 flex-1">
           <p>
             Frequency: {habit.frequency[0]} per {habit.frequency[1]}
           </p>
@@ -199,7 +199,7 @@ export default function HabitCard({ habit }: Props) {
             >
               {habit.doneToday ? "Completed for now!" : `Press to complete!`}
             </Button>
-            <Timer />
+            <Timer habitId={habit.id} />
           </div>
           <Progress value={progress} className="w-[75%]" />
         </CardFooter>

@@ -1,19 +1,21 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "./components/ThemeProvider";
 import "./globals.css";
-import { Toaster } from "sonner";
-import { SessionProvider } from "next-auth/react";
 import { Providers } from "./providers";
+import { FloatingTimer } from "./components/FloatingTimer";
+import { GlobalTimerTick } from "./components/GlobalTimerTick";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -32,6 +34,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>{children}</Providers>
+        <GlobalTimerTick />
+        <FloatingTimer />
       </body>
     </html>
   );
