@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE `HabitLog` ADD COLUMN `duration` INTEGER NOT NULL DEFAULT 0;

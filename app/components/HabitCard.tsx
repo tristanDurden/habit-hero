@@ -28,6 +28,7 @@ import { useOnlineStatus } from "../providers/online-status";
 import { useHabitCompletion } from "../hooks/habits/useHabitCompletion";
 import { useHabitDeletion } from "../hooks/habits/useHabitDeletion";
 import HabitFolderDialog from "./HabitFolderDialog";
+import { lastCompletedFormatted } from "@/lib/timeFormatting";
 
 type Props = {
   habit: Habit;
@@ -90,7 +91,7 @@ export default function HabitCard({ habit }: Props) {
         fetchData();
       } else {
         pushQueue({
-          type: "UPDATE",
+          type: "HABIT_UPDATE",
           payload: {
             ...habit,
             counter: 0,
@@ -114,7 +115,7 @@ export default function HabitCard({ habit }: Props) {
         fetchData();
       } else {
         pushQueue({
-          type: "UPDATE",
+          type: "HABIT_UPDATE",
           payload: {
             ...habit,
             counter: 0,
@@ -166,16 +167,19 @@ export default function HabitCard({ habit }: Props) {
           <p>Your streak: {habit.streak}</p>
 
           <p>
-            LastCompleted:{" "}
+            Last time completed:{" "}
             {/* Need to add createdAt parameter to db and store and type to control that with ease and accuracy */}
             {/* or just use habitlog query. if there is no result so it s never completed */}
             {!useHabitStore.getState().habitLog[habit.id] ? (
               "never completed"
             ) : (
               <>
-                {lastCompletedDate.toLocaleString()} -{" "}
-                {getWeekDay(lastCompletedDate)} -{" "}
+                <br />
                 {howManyDaysLeftFromLast(lastCompletedDate, nowDate())}
+                {" - "}
+                {getWeekDay(lastCompletedDate)} - <br />
+                {lastCompletedFormatted(habit.lastCompleted)}
+                {" - "}
               </>
             )}
           </p>

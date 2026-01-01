@@ -1,13 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import useTimerStore from "../timerStore";
-import useHabitStore from "../habitStore";
+import useTimerStore from "../../timerStore";
+import useHabitStore from "../../habitStore";
 
-/**
- * Global timer tick component that ensures all running timers are ticked
- * regardless of which components are mounted.
- */
 export function GlobalTimerTick() {
   const tick = useTimerStore((s) => s.tick);
   // Only depend on the count of running timers, not the whole habits array

@@ -4,9 +4,9 @@ import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pause, Play, X, Maximize2 } from "lucide-react";
-import useTimerStore from "../timerStore";
-import useHabitStore from "../habitStore";
-import { useAlarm } from "../hooks/timer/useAlarm";
+import useTimerStore from "../../timerStore";
+import useHabitStore from "../../habitStore";
+import { useAlarm } from "../../hooks/timer/useAlarm";
 import { minutesAndSeconds } from "@/lib/timeFormatting";
 
 export function FloatingTimer() {

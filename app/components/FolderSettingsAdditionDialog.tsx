@@ -9,14 +9,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import useHabitStore from "../habitStore";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
 import { Folder } from "@/lib/types";
 import { useFolderCreation } from "../hooks/folders/useFolderCreation";
 import { useFolderUpdate } from "../hooks/folders/useFolderUpdate";
-import { useFolderDeletion } from "../hooks/folders/useFolderDeletion";
-import { now, nowInSeconds } from "@/lib/timeCounter";
+import { nowInSeconds } from "@/lib/timeCounter";
 
 type Props =
   | {
@@ -48,12 +46,17 @@ export default function FolderSettingsAdditionDialog(props: Props) {
 
   function handleRename(name: string) {
     if (mode === "add") return;
-    updateFolder(props.folder);
+    updateFolder({ ...props.folder, name: name, updatedAt: nowInSeconds() });
   }
 
   function handleAddition(name: string) {
     const id: string = uuidv4();
-    createFolder({ id: id, name: name, habitIds: [], updatedAt: now() });
+    createFolder({
+      id: id,
+      name: name,
+      habitIds: [],
+      updatedAt: nowInSeconds(),
+    });
   }
 
   function handleSubmit(name: string) {

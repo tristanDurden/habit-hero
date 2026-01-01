@@ -76,7 +76,7 @@ export default function MyTabs() {
   }, []);
 
   return (
-    <Tabs defaultValue="all" className="w-full">
+    <Tabs defaultValue="all" className="w-full gap-3">
       <TabsList>
         <TabsTrigger value="all">All</TabsTrigger>
         {folders.map((folder) => {

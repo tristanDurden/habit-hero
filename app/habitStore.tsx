@@ -238,31 +238,6 @@ const useHabitStore = create<HabitStore>()(
     }),
     {
       name: "habits-storage",
-      // Migration: Convert old folder structure (habits array) to new structure (habitIds array)
-      migrate: (persistedState: unknown) => {
-        const state = persistedState as Partial<HabitStore>;
-        if (state?.folders) {
-          const migratedFolders = state.folders.map((folder) => {
-            // Type guard: check if folder has old 'habits' array (legacy structure)
-            const legacyFolder = folder as Folder & { habits?: Habit[] };
-            if (legacyFolder.habits && Array.isArray(legacyFolder.habits)) {
-              return {
-                id: folder.id,
-                name: folder.name,
-                habitIds: legacyFolder.habits.map((habit) => habit.id),
-              };
-            }
-            // Already migrated or new structure
-            return folder;
-          });
-          return {
-            ...state,
-            folders: migratedFolders,
-          } as HabitStore;
-        }
-        return persistedState as HabitStore;
-      },
-      version: 1, // Increment version to trigger migration
     }
   )
 );

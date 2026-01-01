@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import { FloatingTimer } from "./components/FloatingTimer";
-import { GlobalTimerTick } from "./components/GlobalTimerTick";
+import { FloatingTimer } from "./components/timer/FloatingTimer";
+import { GlobalTimerTick } from "./components/timer/GlobalTimerTick";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

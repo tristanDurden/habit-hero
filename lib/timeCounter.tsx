@@ -128,9 +128,9 @@ export function howManyDaysLeftFromLast(last: Date, now: Date): string {
     difference = nowDate - lastDay;
   }
   if (difference === 0) {
-    message = "today";
+    message = "Today";
   } else if (difference === 1) {
-    message = "yesterday";
+    message = "Yesterday";
   } else {
     message = `${difference} days ago`;
   }
