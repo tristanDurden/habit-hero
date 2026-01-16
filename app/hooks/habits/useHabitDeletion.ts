@@ -36,7 +36,7 @@ export function useHabitDeletion() {
             }
           } else {
             pushQueue({
-              type: "DELETE",
+              type: "HABIT_DELETE",
               payload: { id: id },
               timestamp: nowDate().toISOString(),
             });

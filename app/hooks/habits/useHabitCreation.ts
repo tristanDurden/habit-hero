@@ -36,7 +36,7 @@ export function useHabitCreation() {
             }
           } else {
             pushQueue({
-              type: "CREATE",
+              type: "HABIT_CREATE",
               payload: habit,
               timestamp: nowDate().toISOString(),
             });

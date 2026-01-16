@@ -34,7 +34,7 @@ export function useHabitUpdate() {
             }
           } else {
             pushQueue({
-              type: "UPDATE",
+              type: "HABIT_UPDATE",
               payload: habit,
               timestamp: nowDate().toISOString(),
             });

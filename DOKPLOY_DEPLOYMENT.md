@@ -122,6 +122,7 @@ This script will:
 
 ### 4.1 Ensure Your Repository is Ready
 
+
 Make sure your code is pushed to GitHub/GitLab with:
 - ✅ `Dockerfile` (already created)
 - ✅ `docker-compose.prod.yml` (already created)
