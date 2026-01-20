@@ -258,13 +258,37 @@ docker exec -it habit-hero-app npx prisma migrate deploy
 
 ## Step 7: Configure Domain and SSL
 
-### 7.1 Add Domain in Dokploy
+**⚠️ Important:** To get a trusted SSL certificate (not the default Traefik certificate), you **must** have a domain name. You cannot get a trusted certificate for an IP address.
+
+### 7.1 Configure DNS First
+
+Before adding the domain in Dokploy:
+
+1. **Point your domain to your server:**
+   - In your domain registrar's DNS settings, add an A record:
+     - **Name:** `@` (or leave blank for root domain)
+     - **Type:** `A`
+     - **Value:** `YOUR_SERVER_IP`
+     - **TTL:** `3600` (or default)
+   
+2. **Optional - Add www subdomain:**
+   - Add another A record:
+     - **Name:** `www`
+     - **Type:** `A`
+     - **Value:** `YOUR_SERVER_IP`
+
+3. **Wait for DNS propagation:**
+   - Can take 5 minutes to 48 hours
+   - Verify with: `dig yourdomain.com` or online DNS checker
+   - Must show your server IP before proceeding
+
+### 7.2 Add Domain in Dokploy
 
 1. In your application settings, go to **"Domains"**
 2. Add your domain: `yourdomain.com`
 3. Add www subdomain: `www.yourdomain.com` (optional)
 
-### 7.2 Enable SSL
+### 7.3 Enable SSL
 
 1. In Dokploy, enable **"SSL"** or **"HTTPS"**
 2. Dokploy will automatically:
@@ -279,7 +303,7 @@ docker exec -it habit-hero-app npx prisma migrate deploy
 
 4. **Restart the application** after updating the environment variable
 
-### 7.3 Verify SSL
+### 7.4 Verify SSL
 
 - Visit `https://yourdomain.com`
 - Check that the padlock icon appears in your browser
@@ -449,13 +473,45 @@ chmod +x ~/backup-db.sh
 
 ### SSL Certificate Issues
 
-1. **Verify domain DNS:**
-   - Ensure A record points to server IP
-   - Wait for DNS propagation
+**If you see "TRAEFIK DEFAULT CERT" or browser security warnings:**
 
-2. **Check SSL logs:**
-   - In Dokploy, check SSL certificate status
-   - Re-request certificate if needed
+This means you're using Traefik's self-signed certificate. To fix this:
+
+1. **You need a domain name:**
+   - Let's Encrypt (free SSL) requires a valid domain name
+   - You cannot get a trusted certificate for an IP address
+   - Purchase a domain from a registrar (Namecheap, Cloudflare, etc.)
+
+2. **Configure DNS:**
+   - Point your domain's A record to your server IP
+   - Example: `yourdomain.com` → `YOUR_SERVER_IP`
+   - Wait for DNS propagation (can take 5 minutes to 48 hours)
+   - Verify DNS: `dig yourdomain.com` or use online DNS checker
+
+3. **Add domain in Dokploy:**
+   - Go to your application in Dokploy dashboard
+   - Navigate to **"Domains"** section
+   - Add your domain: `yourdomain.com`
+   - (Optional) Add `www.yourdomain.com` if you want www support
+
+4. **Enable SSL in Dokploy:**
+   - In the same Domains section, enable **"SSL"** or **"HTTPS"**
+   - Dokploy will automatically:
+     - Request Let's Encrypt certificate
+     - Configure SSL/TLS
+     - Set up automatic renewal
+   - Wait 1-2 minutes for certificate provisioning
+
+5. **Update environment variables:**
+   - Update `NEXTAUTH_URL` to use HTTPS: `https://yourdomain.com`
+   - Restart the application after updating
+
+6. **Verify:**
+   - Visit `https://yourdomain.com` (not the IP address!)
+   - You should see a valid certificate from "Let's Encrypt"
+   - Browser should show a padlock icon
+
+**Note:** If you're accessing via IP address (`http://YOUR_SERVER_IP`), you'll always see the default Traefik certificate. You must use your domain name to get a trusted certificate.
 
 ---
 
