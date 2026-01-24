@@ -102,25 +102,64 @@ export function CalendarDrawer() {
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <CalendarDays className=" cursor-pointer" width={20} height={20} />
+        <CalendarDays className=" cursor-pointer" width={24} height={24} />
       </DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader className="text-left">
-          <DialogTitle>Calendar of your habits!</DialogTitle>
-          <DialogDescription>Showing off</DialogDescription>
-
-          <PopUpMenu
-            chosenHabits={chosenHabits}
-            setChosenHabits={setChosenHabits}
-          />
-
-          {chosenHabits[0] &&
-            chosenHabits.map((habit) => <p key={habit.id}>{habit.title}</p>)}
+      <DrawerContent className="max-h-[85vh]">
+        <DrawerHeader>
+          <DrawerTitle>Calendar of your habits!</DrawerTitle>
+          <DrawerDescription>Track your progress over time</DrawerDescription>
         </DrawerHeader>
 
-        <DrawerFooter className="pt-2">
+        <div className="px-4 pb-4 overflow-y-auto">
+          <div className="mb-4">
+            <PopUpMenu
+              chosenHabits={chosenHabits}
+              setChosenHabits={setChosenHabits}
+            />
+          </div>
+
+          {chosenHabits[0] && (
+            <div className="mb-4">
+              <h3 className="text-sm font-medium mb-2">Selected Habits:</h3>
+              <div className="flex flex-wrap gap-2">
+                {chosenHabits.map((habit) => (
+                  <span
+                    key={habit.id}
+                    className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full"
+                  >
+                    {habit.title}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {chosenHabits[0] ? (
+            <div className="w-full overflow-x-auto">
+              <CalendarHeatmap
+                startDate={startDate}
+                endDate={new Date()}
+                showWeekdayLabels
+                values={log}
+                titleForValue={(log) =>
+                  `You completed ${log?.count} time(s) on ${log?.date}`
+                }
+                classForValue={(value) => {
+                  if (!value) return "color-empty";
+                  return `color-scale-${Math.min(value.count, 4)}`;
+                }}
+              />
+            </div>
+          ) : (
+            <div className="text-center p-8 text-gray-500">
+              Select habits above to view their calendar
+            </div>
+          )}
+        </div>
+
+        <DrawerFooter>
           <DrawerClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">Close</Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>

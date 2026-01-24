@@ -28,11 +28,11 @@ export function PopUpMenu({ chosenHabits, setChosenHabits }: Props) {
     }
   }
   return (
-    <Popover modal={true}>
+    <Popover modal={false}>
       <PopoverTrigger asChild>
         <Button variant="outline">Choose habits</Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80">
+      <PopoverContent className="w-80" side="bottom" align="start">
         <div
           className="flex flex-col gap-2 overflow-y-auto pointer-events-auto"
           style={{ maxHeight: "220px" }} // ~5 habits

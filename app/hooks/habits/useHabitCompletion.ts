@@ -36,7 +36,7 @@ export function useHabitCompletion() {
             : habit.streak,
           doneToday: checkFinish ? true : habit.doneToday,
         };
-        //checking for online
+        // checking for online
         if (isOnline) {
           try {
             // Send habit update and log completion in a single atomic request

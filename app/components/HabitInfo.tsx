@@ -79,27 +79,38 @@ export function HabitInfo({ habit }: Props) {
       <DrawerTrigger asChild>
         <CalendarDays className=" cursor-pointer" width={20} height={20} />
       </DrawerTrigger>
-      <DrawerContent>
+      <DrawerContent className="max-h-[90vh]">
         <DrawerHeader className="text-left">
-          <DrawerTitle>Edit profile</DrawerTitle>
-          <DrawerDescription>
-            Make changes to your profile here. Click save when you&apos;re done.
-          </DrawerDescription>
+          <DrawerTitle>{habit.title}</DrawerTitle>
+          <DrawerDescription>{habit.description}</DrawerDescription>
         </DrawerHeader>
-        <p>wtf</p>
-        <CalendarHeatmap
-          startDate={new Date("2016-01-01")}
-          endDate={new Date("2016-04-01")}
-          values={[
-            { date: "2016-01-01", count: 12 },
-            { date: "2016-01-22", count: 122 },
-            { date: "2016-01-30", count: 38 },
-            // ...and so on
-          ]}
-        />
+        <div className="px-4 pb-4 overflow-y-auto">
+          <p className="mb-4">{!log && "You have not completed it yet"}</p>
+          {log ? (
+            <div className="w-full overflow-x-auto">
+              <CalendarHeatmap
+                startDate={startDate}
+                endDate={new Date()}
+                showWeekdayLabels
+                values={log}
+                titleForValue={(log) =>
+                  `You completed ${log?.count} time(s) on ${log?.date}`
+                }
+                classForValue={(value) => {
+                  if (!value) return "color-empty";
+                  return `color-scale-${Math.min(value.count, 4)}`;
+                }}
+              />
+            </div>
+          ) : (
+            <div className="text-center p-8 text-gray-500">
+              No activity data yet. Start completing your habit!
+            </div>
+          )}
+        </div>
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">Close</Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>

@@ -13,13 +13,17 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar />
-      <div className="flex flex-row gap-5 items-center py-3">
+      <div className="flex flex-row gap-5 items-center px-6 py-3">
         <h1>
           Welcome, {session?.user?.name || "User"}! Your habit journey starts
           here 💪
         </h1>
 
-        <HabitDialog mode="add" habit={AddDefaultHabit} />
+        <HabitDialog
+          mode="add"
+          habit={AddDefaultHabit}
+          className="cursor-pointer p-0 m-0 items-center justify-center border-2 border-gray-300 rounded-md px-2 py-1"
+        />
       </div>
       <main className="flex-1 p-6">
         <Tabs />

@@ -14,15 +14,16 @@ import { SquarePen } from "lucide-react";
 type Props = {
   mode: "add" | "update";
   habit: Habit;
+  className?: string;
 };
 
-export default function HabitDialog({ mode, habit }: Props) {
+export default function HabitDialog({ mode, habit, className }: Props) {
   const nameTrigger =
     mode === "add" ? "Add Habit" : <SquarePen size={20} className="p-0" />;
   const dialogTitle = mode === "add" ? "Add Habit" : "Update Habit";
   return (
     <Dialog>
-      <DialogTrigger className="cursor-pointer p-0 m-0 items-center justify-center">
+      <DialogTrigger className={className || "cursor-pointer p-0 m-0 items-center justify-center"}>
         {nameTrigger}
       </DialogTrigger>
       <DialogContent>

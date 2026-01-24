@@ -189,4 +189,62 @@
   .dark .react-calendar-heatmap text {
     fill: theme('colors.gray.500');
   }
+
+  /* Mobile optimizations for calendar heatmap */
+  @media (max-width: 767px) {
+    .react-calendar-heatmap {
+      min-height: 120px;
+    }
+    
+    .react-calendar-heatmap rect {
+      /* Slightly larger touch targets on mobile */
+      rx: 1;
+      ry: 1;
+    }
+    
+    .react-calendar-heatmap text {
+      font-size: 10px;
+      font-weight: 500;
+    }
+    
+    /* Better spacing for mobile */
+    .react-calendar-heatmap .month {
+      font-size: 11px;
+      font-weight: 600;
+    }
+  }
+
+  /* Color scale for habit completion */
+  .react-calendar-heatmap .color-scale-0 {
+    fill: theme('colors.gray.200');
+  }
+  .react-calendar-heatmap .color-scale-1 {
+    fill: theme('colors.green.200');
+  }
+  .react-calendar-heatmap .color-scale-2 {
+    fill: theme('colors.green.400');
+  }
+  .react-calendar-heatmap .color-scale-3 {
+    fill: theme('colors.green.600');
+  }
+  .react-calendar-heatmap .color-scale-4 {
+    fill: theme('colors.green.800');
+  }
+
+  /* Dark mode color scale */
+  .dark .react-calendar-heatmap .color-scale-0 {
+    fill: theme('colors.gray.700');
+  }
+  .dark .react-calendar-heatmap .color-scale-1 {
+    fill: theme('colors.green.800');
+  }
+  .dark .react-calendar-heatmap .color-scale-2 {
+    fill: theme('colors.green.600');
+  }
+  .dark .react-calendar-heatmap .color-scale-3 {
+    fill: theme('colors.green.500');
+  }
+  .dark .react-calendar-heatmap .color-scale-4 {
+    fill: theme('colors.green.400');
+  }
 }
