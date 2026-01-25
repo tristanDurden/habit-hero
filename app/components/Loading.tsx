@@ -20,7 +20,7 @@ export default function Loading() {
       </div>
 
       {/* Skeleton grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full justify-items-center md:justify-items-stretch">
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => (
               <div

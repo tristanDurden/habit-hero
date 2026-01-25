@@ -90,7 +90,7 @@ export default function MyTabs() {
       </TabsList>
       {/* tab with all habits */}
       <TabsContent value="all">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 justify-items-center md:justify-items-stretch">
           {habits.map((habit) => (
             <HabitCard key={habit.id} habit={habit} />
           ))}
@@ -104,7 +104,7 @@ export default function MyTabs() {
           <TabsContent
             key={folder.id}
             value={folder.name}
-            className="grid grid-cols-1 md:grid-cols-4 gap-4"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 justify-items-center md:justify-items-stretch"
           >
             {folderHabits.map((habit) => {
               return <HabitCard key={habit.id} habit={habit} />;

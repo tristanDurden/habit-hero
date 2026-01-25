@@ -75,10 +75,10 @@ export default function NewHabit({ habit, mode }: Props) {
   };
 
   return (
-    <div>
-      <Card>
-        <CardContent className="">
-          <div className="grid w-full max-w-sm items-center gap-3 pb-3">
+    <div className="w-full">
+      <Card className="w-full">
+        <CardContent className="p-4 sm:p-6">
+          <div className="grid w-full items-center gap-3 pb-3">
             <Label htmlFor="title">Title</Label>
             <Input
               type="text"
@@ -86,9 +86,10 @@ export default function NewHabit({ habit, mode }: Props) {
               name="title"
               value={form.title}
               onChange={handleChange}
+              className="w-full"
             />
           </div>
-          <div className="grid w-full max-w-sm items-center gap-3 pb-3">
+          <div className="grid w-full items-center gap-3 pb-3">
             <Label htmlFor="description">Description</Label>
             <Input
               type="text"
@@ -96,6 +97,7 @@ export default function NewHabit({ habit, mode }: Props) {
               name="description"
               onChange={handleChange}
               value={form.description}
+              className="w-full"
             />
           </div>
           {/* Selector of frequencies */}
@@ -103,7 +105,7 @@ export default function NewHabit({ habit, mode }: Props) {
             <Label htmlFor="frequency">
               How often you want to do the exercise
             </Label>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
               <Select
                 value={form.frequency[0]}
                 onValueChange={(val) => {
@@ -116,7 +118,7 @@ export default function NewHabit({ habit, mode }: Props) {
                   }));
                 }}
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Times per " />
                 </SelectTrigger>
                 <SelectContent>
@@ -137,7 +139,7 @@ export default function NewHabit({ habit, mode }: Props) {
                   }));
                 }}
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Day" />
                 </SelectTrigger>
                 <SelectContent>
@@ -151,11 +153,13 @@ export default function NewHabit({ habit, mode }: Props) {
             {/* select for week timeperiod */}
             {(form.frequency[1] === "week" ||
               form.frequency[1] === "month") && (
-              <Calendar04
-                date={now()}
-                frequency={form.frequency}
-                onSendSchedule={handleScheduleChange}
-              />
+              <div className="w-full overflow-x-auto">
+                <Calendar04
+                  date={now()}
+                  frequency={form.frequency}
+                  onSendSchedule={handleScheduleChange}
+                />
+              </div>
             )}
             {/* select for month. maybe calendar should be 1 with logic inside */}
             {/* {form.frequency[1] === 'month' && (
@@ -163,15 +167,17 @@ export default function NewHabit({ habit, mode }: Props) {
             )} */}
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
+        <CardFooter className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-0 pt-4">
           <DialogClose
             type="submit"
             onClick={handleSaveHabit}
-            className="cursor-pointer"
+            className="cursor-pointer w-full sm:w-auto"
           >
             Save
           </DialogClose>
-          <DialogClose className="cursor-pointer">Exit</DialogClose>
+          <DialogClose className="cursor-pointer w-full sm:w-auto">
+            Exit
+          </DialogClose>
         </CardFooter>
       </Card>
     </div>

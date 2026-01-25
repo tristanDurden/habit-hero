@@ -15,6 +15,7 @@ import useTimerStore from "../timerStore";
 import TimerInputs from "./timer/TimerInputs";
 import TimerButtons from "./timer/TimerButtons";
 import TimerStatus from "./timer/TimerStatus";
+import { Timer as TimerIcon } from "lucide-react";
 
 type Props = {
   habitId: string;
@@ -48,7 +49,9 @@ export function Timer({ habitId }: Props) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button>T</Button>
+        <Button variant="outline" size="icon">
+          <TimerIcon />
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
