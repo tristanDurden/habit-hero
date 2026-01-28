@@ -22,6 +22,10 @@ export function useHabitLogDuration() {
     if (!habit) {
       // If habit doesn't exist, just update the log locally
       updateHabitLogDuration(habitId, date, duration);
+      // notify listeners that habit log changed (e.g. ActivityTable)
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("habitLogUpdated"));
+      }
       return;
     }
 
@@ -36,6 +40,10 @@ export function useHabitLogDuration() {
 
     // Update local state first
     updateHabitLogDuration(habitId, date, duration);
+    // notify listeners that habit log changed (e.g. ActivityTable)
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("habitLogUpdated"));
+    }
 
     // Handle sync
     if (isOnline) {

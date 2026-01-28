@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Trash, Timer as TimerIcon } from "lucide-react";
+import { Trash } from "lucide-react";
 import HabitDialog from "./HabitDialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";

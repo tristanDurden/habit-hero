@@ -2,9 +2,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TabsSettings from "./TabsSettings";
 import useHabitStore from "../habitStore";
 import HabitCard from "./HabitCard";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Habit as DbHabit, Folder as DbFolder } from "@prisma/client";
 import { dbHabitToUi, dbFolderToUi } from "@/lib/dbformatting";
+import {
+  mergeServerHabitsToLocal,
+  mergeServerFoldersToLocal,
+} from "@/lib/onlineFunc";
 
 export default function MyTabs() {
   //  store consts
@@ -13,6 +17,7 @@ export default function MyTabs() {
   const getHabitsForFolder = useHabitStore((s) => s.getHabitsForFolder);
   const isOnline = useHabitStore((s) => s.isOnline);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const isFirstMount = useRef(true);
 
   // Fetch habits and folders from API (or use localStorage if offline)
   useEffect(() => {
@@ -24,6 +29,12 @@ export default function MyTabs() {
       }
 
       try {
+        // Get current local state
+        const store = useHabitStore.getState();
+        const localHabits = store.habits || [];
+        const localFolders = store.folders || [];
+        const queue = store.queue || [];
+
         // Fetch habits
         const habitsRes = await fetch("/api/habits", {
           method: "GET",
@@ -34,8 +45,20 @@ export default function MyTabs() {
 
         if (habitsRes.ok) {
           const dbHabits: DbHabit[] = await habitsRes.json();
-          const uiHabits = dbHabits.map((dbHabit) => dbHabitToUi(dbHabit));
-          useHabitStore.setState({ habits: uiHabits });
+
+          // Hybrid approach: Merge on initial mount, replace on subsequent refreshes
+          if (isFirstMount.current) {
+            const mergedHabits = mergeServerHabitsToLocal(
+              dbHabits,
+              localHabits,
+              queue
+            );
+            useHabitStore.setState({ habits: mergedHabits });
+          } else {
+            // On refresh, just replace with server data (online-status handles merging on reconnect)
+            const uiHabits = dbHabits.map((dbHabit) => dbHabitToUi(dbHabit));
+            useHabitStore.setState({ habits: uiHabits });
+          }
         }
 
         // Fetch folders
@@ -48,8 +71,27 @@ export default function MyTabs() {
 
         if (foldersRes.ok) {
           const dbFolders: DbFolder[] = await foldersRes.json();
-          const uiFolders = dbFolders.map((dbFolder) => dbFolderToUi(dbFolder));
-          useHabitStore.setState({ folders: uiFolders });
+
+          // Hybrid approach: Merge on initial mount, replace on subsequent refreshes
+          if (isFirstMount.current) {
+            const mergedFolders = mergeServerFoldersToLocal(
+              dbFolders,
+              localFolders,
+              queue
+            );
+            useHabitStore.setState({ folders: mergedFolders });
+          } else {
+            // On refresh, just replace with server data
+            const uiFolders = dbFolders.map((dbFolder) =>
+              dbFolderToUi(dbFolder)
+            );
+            useHabitStore.setState({ folders: uiFolders });
+          }
+        }
+
+        // Mark that initial mount is complete
+        if (isFirstMount.current) {
+          isFirstMount.current = false;
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);

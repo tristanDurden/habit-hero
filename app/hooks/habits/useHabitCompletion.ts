@@ -5,22 +5,22 @@ import { numberTranslater, Habit as uiHabit } from "@/lib/types";
 import { toast } from "sonner";
 
 export function useHabitCompletion() {
-    //online const
-    const { isOnline } = useOnlineStatus();
-    
-    // habitStore functions
-    const updateHabit = useHabitStore((state) => state.updateHabit);
-    const updateHabitLog = useHabitStore((state) => state.updateHabitLog);
-    const pushQueue = useHabitStore((state) => state.pushQueue);
+  //online const
+  const { isOnline } = useOnlineStatus();
 
-    return async function completeHabit(habit: uiHabit) {
-        //console.log(habit); //test
-        const frequencyNumber = numberTranslater[habit.frequency[0]];
-        const newCounter = habit.counter + 1;
-        const checkFinish = newCounter === frequencyNumber;
-        console.log(checkFinish);
+  // habitStore functions
+  const updateHabit = useHabitStore((state) => state.updateHabit);
+  const updateHabitLog = useHabitStore((state) => state.updateHabitLog);
+  const pushQueue = useHabitStore((state) => state.pushQueue);
 
-        if (habit.doneToday === false) {
+  return async function completeHabit(habit: uiHabit) {
+    //console.log(habit); //test
+    const frequencyNumber = numberTranslater[habit.frequency[0]];
+    const newCounter = habit.counter + 1;
+    const checkFinish = newCounter === frequencyNumber;
+    console.log(checkFinish);
+
+    if (habit.doneToday === false) {
       //need to get a seperate function to handle to keep code clean
 
       // updating the button for day frequency
@@ -78,6 +78,10 @@ export function useHabitCompletion() {
         console.log("click!");
         updateHabitLog(habit.id, todayKey(nowDate()));
         updateHabit(updatedHabit);
+        // notify listeners that habit log changed (e.g. ActivityTable)
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("habitLogUpdated"));
+        }
         // WEEK LOGIC
       } else if (habit.frequency[1] === "week") {
         const updatedHabit: uiHabit = {
@@ -127,6 +131,10 @@ export function useHabitCompletion() {
         }
         updateHabitLog(habit.id, todayKey(nowDate()));
         updateHabit(updatedHabit);
+        // notify listeners that habit log changed (e.g. ActivityTable)
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("habitLogUpdated"));
+        }
       }
       toast(`You completed your "${habit.title}"`, {
         position: "top-center",
@@ -142,5 +150,5 @@ export function useHabitCompletion() {
         description: `Come back later`,
       });
     }
-    };
+  };
 };
