@@ -179,7 +179,6 @@ export default function HabitCard({ habit }: Props) {
                 {" - "}
                 {getWeekDay(lastCompletedDate)} - <br />
                 {lastCompletedFormatted(habit.lastCompleted)}
-                {" - "}
               </>
             )}
           </p>
