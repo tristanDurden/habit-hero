@@ -4,6 +4,8 @@ import NavBar from "./components/NavBar";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import PushNotificationManager from "./pwa/PushNotificationManager";
+import InstallPrompt from "./pwa/InstallPrompt";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -31,6 +33,7 @@ export default function Home() {
         )}
 
         {status !== "loading" && session && (
+          <>
           <div className="text-center space-y-6 max-w-2xl">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
               Welcome back, {session.user?.name}! 👋
@@ -44,6 +47,9 @@ export default function Home() {
               </Button>
             </Link>
           </div>
+          <PushNotificationManager/>
+          <InstallPrompt/>
+          </>
         )}
       </main>
     </div>
