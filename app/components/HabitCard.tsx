@@ -29,7 +29,7 @@ import { useHabitCompletion } from "../hooks/habits/useHabitCompletion";
 import { useHabitDeletion } from "../hooks/habits/useHabitDeletion";
 import HabitFolderDialog from "./HabitFolderDialog";
 import { lastCompletedFormatted } from "@/lib/timeFormatting";
-import DeleteHabitConfirmationModal from "./DeleteHabitConfirmationModal";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
 type Props = {
   habit: Habit;
@@ -154,7 +154,7 @@ export default function HabitCard({ habit }: Props) {
           <CardAction className="grid grid-cols-2 gap-2 items-center justify-center">
             <HabitDialog mode="update" habit={habit} />
 
-            <DeleteHabitConfirmationModal habitId={habit.id} />
+            <DeleteConfirmationModal job={{ type: "habit", id: habit.id}} />
             <HabitInfo habit={habit} />
             <HabitFolderDialog habit={habit} />
           </CardAction>

@@ -14,12 +14,14 @@ import { Habit } from "@/lib/types";
 import FolderSettingsAdditionDialog from "./FolderSettingsAdditionDialog";
 import { toast } from "sonner";
 import FolderSettingsHabitAdditionDialog from "./FolderSettingsHabitAdditionDialog";
+import { useFolderDeletion } from "../hooks/folders/useFolderDeletion";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
 export default function TabsSettings() {
   //  store consts
   const folders = useHabitStore((s) => s.folders);
   const habits = useHabitStore((s) => s.habits);
-  const deleteFolder = useHabitStore((s) => s.deleteFolder);
+  const deleteFolder = useFolderDeletion();
   const removeHabitFromFolder = useHabitStore((s) => s.removeHabitFromFolder);
 
   function handleDeletionFromFolder(habit: Habit, folderId: string) {
@@ -27,7 +29,7 @@ export default function TabsSettings() {
     toast.success("Folder deleted successfully");
   }
 
-  function handleDelete(folderId: string) {
+  function handleFolderDelete(folderId: string) {
     deleteFolder(folderId);
   }
 
@@ -67,14 +69,7 @@ export default function TabsSettings() {
                         <p>
                           {i + 1}) {habit.title}
                         </p>
-                        <button
-                          className="p-1 cursor-pointer"
-                          onClick={() =>
-                            handleDeletionFromFolder(habit, folder.id)
-                          }
-                        >
-                          <CircleX />
-                        </button>
+                        <DeleteConfirmationModal job={{ type: "habitFromFolder", habit: habit, id: folder.id}} />
                       </div>
                     );
                   })}
@@ -89,9 +84,7 @@ export default function TabsSettings() {
                 </TableCell>
                 {/* delete folder */}
                 <TableCell>
-                  <Button onClick={() => handleDelete(folder.id)}>
-                    Delete
-                  </Button>
+                  <DeleteConfirmationModal job={{ type: "folder", id: folder.id}} />
                 </TableCell>
               </TableRow>
             );
