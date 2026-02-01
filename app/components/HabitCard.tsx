@@ -29,6 +29,7 @@ import { useHabitCompletion } from "../hooks/habits/useHabitCompletion";
 import { useHabitDeletion } from "../hooks/habits/useHabitDeletion";
 import HabitFolderDialog from "./HabitFolderDialog";
 import { lastCompletedFormatted } from "@/lib/timeFormatting";
+import DeleteHabitConfirmationModal from "./DeleteHabitConfirmationModal";
 
 type Props = {
   habit: Habit;
@@ -153,9 +154,7 @@ export default function HabitCard({ habit }: Props) {
           <CardAction className="grid grid-cols-2 gap-2 items-center justify-center">
             <HabitDialog mode="update" habit={habit} />
 
-            <button onClick={handleDeletion} className="cursor-pointer">
-              <Trash size={20} />
-            </button>
+            <DeleteHabitConfirmationModal habitId={habit.id} />
             <HabitInfo habit={habit} />
             <HabitFolderDialog habit={habit} />
           </CardAction>
