@@ -7,9 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import useHabitStore from "../habitStore";
-import { CircleX } from "lucide-react";
 import { Habit } from "@/lib/types";
 import FolderSettingsAdditionDialog from "./FolderSettingsAdditionDialog";
 import { toast } from "sonner";

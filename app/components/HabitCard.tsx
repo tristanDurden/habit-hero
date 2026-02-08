@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect } from "react";
 import useHabitStore from "../habitStore";
-import { getWeekDay, Habit, numberTranslater } from "@/lib/types";
+import { getMonthDay, getWeekDay, Habit, numberTranslater } from "@/lib/types";
 import {
   Card,
   CardAction,
@@ -57,7 +57,7 @@ export default function HabitCard({ habit }: Props) {
   const progress =
     habit.frequency[1] === "day"
       ? (habit.counter * 100) / frequencyNumber
-      : (habit.counter * 100) / 1;
+      : (habit.counter * 100) / 1; // week and month complete in a single action
 
   //  checking if time passed to complete habit
   useEffect(() => {
@@ -187,6 +187,15 @@ export default function HabitCard({ habit }: Props) {
               {habit.schedule.length > 0 &&
                 habit.schedule.map((item, id) => (
                   <p key={id}>{getWeekDay(item)}</p>
+                ))}
+            </>
+          )}
+          {habit.frequency[1] === "month" && (
+            <>
+              <p>Schedule (days of month):</p>
+              {habit.schedule.length > 0 &&
+                habit.schedule.map((item, id) => (
+                  <p key={id}>{getMonthDay(item)}</p>
                 ))}
             </>
           )}

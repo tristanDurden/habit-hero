@@ -1,141 +1,132 @@
 import {
+  getMonthDay,
   getWeekDay,
   getWeekdayNumber,
   Habit,
-  numberTranslater,
-  weekdays,
 } from "./types";
 
-//export const now = Date.now();
-export const now = () => {
-  return Date.now();
-};
+export const now = () => Date.now();
 
 // Return Unix timestamp in seconds (for database INTEGER fields)
-export const nowInSeconds = () => {
-  return Math.floor(Date.now() / 1000);
-};
-export const nowDate = () => {
-  return new Date();
-};
+export const nowInSeconds = () => Math.floor(Date.now() / 1000);
+
+export const nowDate = () => new Date();
 export const DAYDURATION = 24 * 60 * 60 * 1000;
 export const WEEKDURATION = DAYDURATION * 7;
+export const MONTHDURATION = DAYDURATION * 31;
 const midnight = () => {
   return new Date().setHours(0, 0, 0, 0);
 };
 const nextMidnight = DAYDURATION + midnight();
 
-//const
 export const msUntilMidnight = nextMidnight - now();
 
 export default function isReadyToComplete(habit: Habit): boolean {
-  const lastCompleted = habit.lastCompleted;
-  const frequencyString = habit.frequency[0];
-  const frequencyTime = habit.frequency[1];
-  const schedule: Date[] = habit.schedule;
+  const { lastCompleted, frequency, schedule } = habit;
+  const frequencyTime = frequency[1];
+  const isPastMidnight = midnight() > lastCompleted;
 
-  //console.log(lastCompleted, midnight);
-
-  const counter = habit.counter;
-  const frequencyNumber = numberTranslater[frequencyString];
-
-  //  cases of different time periods
-  //first case when it is day! or typeof timePeriod === "string"
   if (frequencyTime === "day") {
-    if (midnight() > lastCompleted) {
-      return true;
-    } else {
-      return false;
-    }
-    // second case it s for week
-  } else if (frequencyTime === "week") {
-    const scheduleWeek = schedule.map((item) => getWeekDay(item));
-
-    if (
-      midnight() > lastCompleted &&
-      scheduleWeek.includes(getWeekDay(nowDate()))
-    ) {
-      return true;
-    } else {
-      return false;
-    }
-    //  third for month
-  } else {
-    return true;
+    return isPastMidnight;
   }
+
+  if (frequencyTime === "week") {
+    const scheduledWeekdays = schedule.map((item) => getWeekDay(item));
+    return isPastMidnight && scheduledWeekdays.includes(getWeekDay(nowDate()));
+  }
+
+  if (frequencyTime === "month") {
+    const scheduledMonthDays = schedule.map((item) => getMonthDay(item));
+    return isPastMidnight && scheduledMonthDays.includes(getMonthDay(nowDate()));
+  }
+
+  return true;
 }
-// needs to check for  month!
+// Keep the daily streak if lastCompleted is no more than one day before today's midnight
 export function keepDayStreak(habit: Habit): boolean {
-  const lastCompleted = habit.lastCompleted;
-  // Keep the daily streak if the last completion happened within
-  // the last 24 hours window relative to today's midnight.
-  // i.e. lastCompleted is no more than one day before today's midnight.
-  if (midnight() - lastCompleted <= DAYDURATION) {
-    return true;
-  } else {
-    return false;
-  }
-}
-// here we go for week streak counting
-export function keepWeekStreak(habit: Habit): boolean {
-  const lastCompleted = habit.lastCompleted;
-  if (WEEKDURATION > now() - lastCompleted) {
-    return true;
-  } else {
-    return false;
-  }
+  return midnight() - habit.lastCompleted <= DAYDURATION;
 }
 
-//counting timer for week estimation
+// Keep the weekly streak if last completion was within 7 days
+export function keepWeekStreak(habit: Habit): boolean {
+  return now() - habit.lastCompleted < WEEKDURATION;
+}
+
+// Keep the monthly streak if last completion was within 31 days
+export function keepMonthStreak(habit: Habit): boolean {
+  return now() - habit.lastCompleted < MONTHDURATION;
+}
+
+// Calculate ms until the next scheduled completion window
 export function msUntilNextScheduledDay(habit: Habit): number {
-  //if its day
   if (habit.frequency[1] === "day") return msUntilMidnight;
-  // const for calculating days until next scheduled day
-  const scheduleWeek = habit.schedule.map((item) => getWeekdayNumber(item));
-  const todayDayNumber = nowDate().getDay();
-  // returning ms until next scheduled day
-  let msUntilNextScheduledDay = 0;
-  let daysUntilNextScheduledDay = 0;
-  // scenario when today is before the first scheduled day
-  if (todayDayNumber < scheduleWeek[0]) {
-    daysUntilNextScheduledDay = scheduleWeek[0] - todayDayNumber;
-  } else if (
-    todayDayNumber > scheduleWeek[0] &&
-    todayDayNumber < scheduleWeek[1]
-  ) {
-    daysUntilNextScheduledDay = scheduleWeek[1] - todayDayNumber;
-  } else {
-    daysUntilNextScheduledDay = scheduleWeek[0] + 7 - todayDayNumber;
-  }
-  msUntilNextScheduledDay =
-    daysUntilNextScheduledDay === 1
+
+  // week logic
+  if (habit.frequency[1] === "week") {
+    const scheduleWeek = habit.schedule.map((item) => getWeekdayNumber(item));
+    const todayDayNumber = nowDate().getDay();
+
+    let daysUntilNext: number;
+    if (todayDayNumber < scheduleWeek[0]) {
+      daysUntilNext = scheduleWeek[0] - todayDayNumber;
+    } else if (
+      todayDayNumber > scheduleWeek[0] &&
+      todayDayNumber < scheduleWeek[1]
+    ) {
+      daysUntilNext = scheduleWeek[1] - todayDayNumber;
+    } else {
+      daysUntilNext = scheduleWeek[0] + 7 - todayDayNumber;
+    }
+
+    return daysUntilNext === 1
       ? msUntilMidnight
-      : (daysUntilNextScheduledDay - 1) * DAYDURATION + msUntilMidnight;
-  return msUntilNextScheduledDay;
+      : (daysUntilNext - 1) * DAYDURATION + msUntilMidnight;
+  }
+
+  // month logic
+  if (habit.frequency[1] === "month") {
+    const scheduledDays = habit.schedule
+      .map((item) => getMonthDay(item))
+      .sort((a, b) => a - b);
+    const today = nowDate();
+    const todayDayOfMonth = today.getDate();
+
+    // Find the next scheduled day in the current month
+    const nextDayThisMonth = scheduledDays.find(
+      (day) => day > todayDayOfMonth
+    );
+
+    let daysUntilNext: number;
+
+    if (nextDayThisMonth !== undefined) {
+      daysUntilNext = nextDayThisMonth - todayDayOfMonth;
+    } else {
+      // Wrap to next month - find the first scheduled day
+      const daysInCurrentMonth = new Date(
+        today.getFullYear(),
+        today.getMonth() + 1,
+        0
+      ).getDate();
+      const remainingDaysThisMonth = daysInCurrentMonth - todayDayOfMonth;
+      const firstScheduledDay = scheduledDays[0];
+      daysUntilNext = remainingDaysThisMonth + firstScheduledDay;
+    }
+
+    return daysUntilNext === 1
+      ? msUntilMidnight
+      : (daysUntilNext - 1) * DAYDURATION + msUntilMidnight;
+  }
+
+  // fallback
+  return msUntilMidnight;
 }
 
 export function howManyDaysLeftFromLast(last: Date, now: Date): string {
-  // consts
-  const lastDay = last.getDate();
-  const nowDate = now.getDate();
-  //var
-  let difference: number = 0;
-  let message: string = "";
-  // case if month changed
-  if (lastDay > nowDate) {
-    difference = lastDay - nowDate;
-  } else {
-    difference = nowDate - lastDay;
-  }
-  if (difference === 0) {
-    message = "Today";
-  } else if (difference === 1) {
-    message = "Yesterday";
-  } else {
-    message = `${difference} days ago`;
-  }
+  const difference = Math.abs(now.getDate() - last.getDate());
 
-  return message;
+  if (difference === 0) return "Today";
+  if (difference === 1) return "Yesterday";
+  return `${difference} days ago`;
 }
 
 // Helper: format date as YYYY-MM-DD

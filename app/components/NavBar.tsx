@@ -16,7 +16,13 @@ export default function NavBar() {
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      const target = event.target as HTMLElement;
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(target) &&
+        !target.closest("[data-radix-popper-content-wrapper]") &&
+        !target.closest("[role='dialog']")
+      ) {
         setIsMenuOpen(false);
       }
     };
