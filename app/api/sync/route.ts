@@ -7,22 +7,23 @@ import { authOptions } from "../auth/[...nextauth]/route";
 import { nowInSeconds } from "@/lib/timeCounter";
 import { Habit as uiHabit } from "@/lib/types";
 import { FolderOpPayloadMap } from "@/lib/queuedFolderOps";
+import { ListOpPayloadMap } from "@/lib/queuedListOps";
 
 
-export async function POST(req:NextRequest) {
+export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { habits: true },
+        where: { email: session.user.email },
+        include: { habits: true },
     });
 
     const userId = user?.id;
     if (!userId) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
     const queue: QueuedOp[] = await req.json();
     if (!queue.length) {
@@ -45,7 +46,7 @@ export async function POST(req:NextRequest) {
                 },
             })
             if (existing) {
-                responseQueue.push({job: job, result: 'Fail'});
+                responseQueue.push({ job: job, result: 'Fail' });
                 continue;
             }
             try {
@@ -59,21 +60,21 @@ export async function POST(req:NextRequest) {
                         counter: habit.counter,
                         streak: habit.streak,
                         lastCompleted: millisToSeconds(habit.lastCompleted),
-                        doneToday:habit.doneToday,
+                        doneToday: habit.doneToday,
                         userId: userId,
                         updatedAt: millisToSeconds(habit.updatedAt),
                     }
                 })
                 console.log("Sync Create succesful" + payload);
-                responseQueue.push({job: job, result: 'Success'})
+                responseQueue.push({ job: job, result: 'Success' })
                 continue;
             } catch (error: unknown) {
                 console.error('Failed to create habit:', error);
-                responseQueue.push({job: job, result: 'Fail'});
+                responseQueue.push({ job: job, result: 'Fail' });
                 continue;
-              }
+            }
 
-              // Update scenario
+            // Update scenario
         } else if (job.type == "HABIT_UPDATE") {
             const habit = job.payload as uiHabit;
             const existing = await prisma.habit.findUnique({
@@ -82,7 +83,7 @@ export async function POST(req:NextRequest) {
                 }
             })
             if (!existing) {
-                responseQueue.push({job: job, result: 'Fail'});
+                responseQueue.push({ job: job, result: 'Fail' });
                 continue;
             }
             try {
@@ -101,21 +102,21 @@ export async function POST(req:NextRequest) {
                         }
                     })
                     console.log("Sync Update successful" + payload);
-                    responseQueue.push({job: job, result: 'Success'})
+                    responseQueue.push({ job: job, result: 'Success' })
                 } else {
                     // No update needed - server version is newer or same
-                    responseQueue.push({job: job, result: 'Success'})
+                    responseQueue.push({ job: job, result: 'Success' })
                 }
                 continue;
             } catch (error: unknown) {
                 console.error('Failed to update habit:', error);
-                responseQueue.push({job: job, result: 'Fail'});
+                responseQueue.push({ job: job, result: 'Fail' });
                 continue;
-              }
-              
-              // Update with log scenario - atomic update + logging (like online completion)
+            }
+
+            // Update with log scenario - atomic update + logging (like online completion)
         } else if (job.type == "HABIT_UPDATE_WITH_LOG") {
-            const payload = job.payload as {habit: uiHabit, logCompletion: {date: string, count: number, duration?: number}};
+            const payload = job.payload as { habit: uiHabit, logCompletion: { date: string, count: number, duration?: number } };
             const habit = payload.habit;
             const existing = await prisma.habit.findUnique({
                 where: {
@@ -123,7 +124,7 @@ export async function POST(req:NextRequest) {
                 }
             })
             if (!existing) {
-                responseQueue.push({job: job, result: 'Fail'});
+                responseQueue.push({ job: job, result: 'Fail' });
                 continue;
             }
             try {
@@ -169,28 +170,28 @@ export async function POST(req:NextRequest) {
                     });
                 });
                 console.log("Sync Update with Log successful");
-                responseQueue.push({job: job, result: 'Success'});
+                responseQueue.push({ job: job, result: 'Success' });
                 continue;
             } catch (error: unknown) {
                 console.error('Failed to sync update with log:', error);
-                responseQueue.push({job: job, result: 'Fail'});
+                responseQueue.push({ job: job, result: 'Fail' });
                 continue;
-              }
+            }
 
-              //Delete scenario
+            //Delete scenario
         } else if (job.type == "HABIT_DELETE") {
-            const idPayload = job.payload as {id:string};
+            const idPayload = job.payload as { id: string };
             const existing = await prisma.habit.findUnique({
-                where: {id: idPayload.id}
+                where: { id: idPayload.id }
             })
             if (!existing) {
                 console.log("Deletion failed", job);
-                responseQueue.push({job: job, result: 'Fail'});
+                responseQueue.push({ job: job, result: 'Fail' });
                 continue;
             }
             try {
                 await prisma.habit.delete({
-                    where: {id: idPayload.id}
+                    where: { id: idPayload.id }
                 });
                 //deletion of logs
                 await prisma.habitLog.deleteMany({
@@ -199,16 +200,16 @@ export async function POST(req:NextRequest) {
                     }
                 })
                 console.log("Sync delete successful" + idPayload);
-                responseQueue.push({job: job, result: "Success"});
+                responseQueue.push({ job: job, result: "Success" });
                 continue;
             } catch (error: unknown) {
                 console.error('Failed to delete habit:', error);
-                responseQueue.push({job: job, result: "Fail"});
+                responseQueue.push({ job: job, result: "Fail" });
                 continue;
-              }
-              // Logging scenario - sync habit log entry
+            }
+            // Logging scenario - sync habit log entry
         } else if (job.type === "HABIT_LOG") {
-            const logData = job.payload as {habitId: string, date: string, count: number, duration?: number};
+            const logData = job.payload as { habitId: string, date: string, count: number, duration?: number };
             try {
                 const payload = await prisma.habitLog.upsert({
                     where: {
@@ -233,20 +234,20 @@ export async function POST(req:NextRequest) {
                     }
                 })
                 console.log("Sync Logging successful" + payload);
-                responseQueue.push({job: job, result: 'Success'});
+                responseQueue.push({ job: job, result: 'Success' });
                 continue;
             } catch (error: unknown) {
                 console.error('Failed to sync habit log:', error);
-                responseQueue.push({job: job, result: 'Fail'});
+                responseQueue.push({ job: job, result: 'Fail' });
                 continue;
-              }
+            }
         } else if (job.type == "FOLDER_CREATE") {
             const folder = job.payload as { id: string; name: string; habitIds: string[]; updatedAt: number };
             const existing = await prisma.folder.findUnique({
-                where: {id: folder.id}
+                where: { id: folder.id }
             });
             if (existing) {
-                responseQueue.push({job: job, result: "Fail"});
+                responseQueue.push({ job: job, result: "Fail" });
                 continue;
             }
             try {
@@ -260,27 +261,27 @@ export async function POST(req:NextRequest) {
                     }
                 });
                 console.log("Sync create folder successful" + payload);
-                responseQueue.push({job: job, result: "Success"});
+                responseQueue.push({ job: job, result: "Success" });
                 continue;
             } catch (error: unknown) {
                 console.error('Failed to create folder:', error);
-                responseQueue.push({job: job, result: 'Fail'});
+                responseQueue.push({ job: job, result: 'Fail' });
                 continue;
             }
         } else if (job.type == "FOLDER_UPDATE") {
             const folder = job.payload as { id: string; name: string; updatedAt: number; habitIds?: string[] };
             const existing = await prisma.folder.findUnique({
-                where: {id: folder.id}
+                where: { id: folder.id }
             });
             if (!existing) {
-                responseQueue.push({job: job, result: "Fail"});
+                responseQueue.push({ job: job, result: "Fail" });
                 continue;
             }
             // Compare timestamps: if local folder is newer, update it
             if (secondsToMillis(existing.updatedAt) < folder.updatedAt) {
                 try {
                     const payload = await prisma.folder.update({
-                        where: {id: folder.id, userId: userId},
+                        where: { id: folder.id, userId: userId },
                         data: {
                             name: folder.name,
                             habitIds: folder.habitIds || (existing.habitIds as string[]),
@@ -288,103 +289,371 @@ export async function POST(req:NextRequest) {
                         },
                     });
                     console.log("Sync update folder successful" + payload);
-                    responseQueue.push({job: job, result: "Success"});
+                    responseQueue.push({ job: job, result: "Success" });
                     continue;
                 } catch (error: unknown) {
                     console.error('Failed to update folder:', error);
-                    responseQueue.push({job: job, result: "Fail"});
+                    responseQueue.push({ job: job, result: "Fail" });
                     continue;
                 }
             } else {
-                responseQueue.push({job: job, result: "Success"});
+                responseQueue.push({ job: job, result: "Success" });
                 continue;
             }
         } else if (job.type == "FOLDER_DELETE") {
-            const idPayload = job.payload as {id:string};
+            const idPayload = job.payload as { id: string };
             const existing = await prisma.folder.findUnique({
-                where: {id: idPayload.id}
+                where: { id: idPayload.id }
             });
             if (!existing) {
-                responseQueue.push({job: job, result: "Fail"});
+                responseQueue.push({ job: job, result: "Fail" });
                 continue;
             }
             try {
                 await prisma.folder.delete({
-                    where: {id: idPayload.id}
+                    where: { id: idPayload.id }
                 });
                 console.log("Sync delete folder successful" + idPayload);
-                responseQueue.push({job: job, result: "Success"});
+                responseQueue.push({ job: job, result: "Success" });
                 continue;
             } catch (error: unknown) {
                 console.error('Failed to delete folder:', error);
-                responseQueue.push({job: job, result: "Fail"});
+                responseQueue.push({ job: job, result: "Fail" });
                 continue;
             }
         } else if (job.type == "FOLDER_ADD_HABIT") {
             const payload = job.payload as FolderOpPayloadMap["FOLDER_ADD_HABIT"];
             const existing = await prisma.folder.findUnique({
-                where: {id: payload.id, userId: userId}
+                where: { id: payload.id, userId: userId }
             });
             if (!existing) {
-                responseQueue.push({job: job, result: "Fail"});
+                responseQueue.push({ job: job, result: "Fail" });
                 continue;
             }
             try {
                 const currentHabitIds = (existing.habitIds as string[]) || [];
                 if (currentHabitIds.includes(payload.habitId)) {
                     // Already added, consider it success
-                    responseQueue.push({job: job, result: "Success"});
+                    responseQueue.push({ job: job, result: "Success" });
                     continue;
                 }
                 const updatedHabitIds = [...currentHabitIds, payload.habitId];
                 await prisma.folder.update({
-                    where: {id: payload.id, userId: userId},
+                    where: { id: payload.id, userId: userId },
                     data: {
                         habitIds: updatedHabitIds,
                         updatedAt: nowInSeconds()
                     }
                 });
                 console.log("Sync add habit to folder successful");
-                responseQueue.push({job: job, result: "Success"});
+                responseQueue.push({ job: job, result: "Success" });
                 continue;
             } catch (error: unknown) {
                 console.error('Failed to add habit to folder:', error);
-                responseQueue.push({job: job, result: "Fail"});
+                responseQueue.push({ job: job, result: "Fail" });
                 continue;
             }
         } else if (job.type == "FOLDER_REMOVE_HABIT") {
             const payload = job.payload as FolderOpPayloadMap["FOLDER_REMOVE_HABIT"];
             const existing = await prisma.folder.findUnique({
-                where: {id: payload.id, userId: userId}
+                where: { id: payload.id, userId: userId }
             });
             if (!existing) {
-                responseQueue.push({job: job, result: "Fail"});
+                responseQueue.push({ job: job, result: "Fail" });
                 continue;
             }
             try {
                 const currentHabitIds = (existing.habitIds as string[]) || [];
                 const updatedHabitIds = currentHabitIds.filter((id) => id !== payload.habitId);
                 await prisma.folder.update({
-                    where: {id: payload.id, userId: userId},
+                    where: { id: payload.id, userId: userId },
                     data: {
                         habitIds: updatedHabitIds,
                         updatedAt: nowInSeconds()
                     }
                 });
                 console.log("Sync remove habit from folder successful");
-                responseQueue.push({job: job, result: "Success"});
+                responseQueue.push({ job: job, result: "Success" });
                 continue;
             } catch (error: unknown) {
                 console.error('Failed to remove habit from folder:', error);
-                responseQueue.push({job: job, result: "Fail"});
+                responseQueue.push({ job: job, result: "Fail" });
+                continue;
+            }
+        } else if (job.type == "LIST_CREATE") {
+            const list = job.payload as ListOpPayloadMap["LIST_CREATE"];
+            const existing = await prisma.list.findUnique({
+                where: { id: list.id }
+            });
+            if (existing) {
+                responseQueue.push({ job: job, result: "Fail" });
+                continue;
+            }
+            try {
+                const payload = await prisma.list.create({
+                    data: {
+                        id: list.id,
+                        name: list.name,
+                        description: list.description,
+                        type: list.type,
+                        isArchived: list.isArchived,
+                        createdAt: list.createdAt ? millisToSeconds(list.createdAt) : nowInSeconds(),
+                        updatedAt: list.updatedAt ? millisToSeconds(list.updatedAt) : nowInSeconds(),
+                        userId: userId,
+                    }
+                })
+                console.log("Sync create list successful" + payload);
+                responseQueue.push({ job: job, result: 'Success' });
+                continue;
+            } catch (error: unknown) {
+                console.error('Failed to create list:', error);
+                responseQueue.push({ job: job, result: 'Fail' });
+                continue;
+            }
+
+            // List Update
+        } else if (job.type == "LIST_UPDATE") {
+            const list = job.payload as ListOpPayloadMap["LIST_UPDATE"];
+            const existing = await prisma.list.findUnique({
+                where: { id: list.id }
+            });
+            if (!existing) {
+                responseQueue.push({ job: job, result: "Fail" });
+                continue;
+            }
+            if (secondsToMillis(existing.updatedAt) < list.updatedAt) {
+                try {
+                    await prisma.list.update({
+                        where: { id: list.id, userId: userId },
+                        data: {
+                            name: list.name,
+                            description: list.description,
+                            type: list.type,
+                            isArchived: list.isArchived,
+                            updatedAt: millisToSeconds(list.updatedAt),
+                        },
+                    });
+                    console.log("Sync update list successful");
+                    responseQueue.push({ job: job, result: "Success" });
+                    continue;
+                } catch (error: unknown) {
+                    console.error('Failed to update list:', error);
+                    responseQueue.push({ job: job, result: "Fail" });
+                    continue;
+                }
+            } else {
+                responseQueue.push({ job: job, result: "Success" });
+                continue;
+            }
+
+            // List Delete
+        } else if (job.type == "LIST_DELETE") {
+            const idPayload = job.payload as ListOpPayloadMap["LIST_DELETE"];
+            const existing = await prisma.list.findUnique({
+                where: { id: idPayload.id }
+            });
+            if (!existing) {
+                responseQueue.push({ job: job, result: "Fail" });
+                continue;
+            }
+            try {
+                // Items are cascade-deleted by the DB foreign key
+                await prisma.list.delete({
+                    where: { id: idPayload.id, userId: userId }
+                });
+                console.log("Sync delete list successful");
+                responseQueue.push({ job: job, result: "Success" });
+                continue;
+            } catch (error: unknown) {
+                console.error('Failed to delete list:', error);
+                responseQueue.push({ job: job, result: "Fail" });
+                continue;
+            }
+
+            // List Archive
+        } else if (job.type == "LIST_ARCHIVE") {
+            const idPayload = job.payload as ListOpPayloadMap["LIST_ARCHIVE"];
+            const existing = await prisma.list.findUnique({
+                where: { id: idPayload.id }
+            });
+            if (!existing) {
+                responseQueue.push({ job: job, result: "Fail" });
+                continue;
+            }
+            try {
+                await prisma.list.update({
+                    where: { id: idPayload.id, userId: userId },
+                    data: {
+                        isArchived: true,
+                        updatedAt: nowInSeconds(),
+                    },
+                });
+                console.log("Sync archive list successful");
+                responseQueue.push({ job: job, result: "Success" });
+                continue;
+            } catch (error: unknown) {
+                console.error('Failed to archive list:', error);
+                responseQueue.push({ job: job, result: "Fail" });
+                continue;
+            }
+
+            // List Unarchive
+        } else if (job.type == "LIST_UNARCHIVE") {
+            const idPayload = job.payload as ListOpPayloadMap["LIST_UNARCHIVE"];
+            const existing = await prisma.list.findUnique({
+                where: { id: idPayload.id }
+            });
+            if (!existing) {
+                responseQueue.push({ job: job, result: "Fail" });
+                continue;
+            }
+            try {
+                await prisma.list.update({
+                    where: { id: idPayload.id, userId: userId },
+                    data: {
+                        isArchived: false,
+                        updatedAt: nowInSeconds(),
+                    },
+                });
+                console.log("Sync unarchive list successful");
+                responseQueue.push({ job: job, result: "Success" });
+                continue;
+            } catch (error: unknown) {
+                console.error('Failed to unarchive list:', error);
+                responseQueue.push({ job: job, result: "Fail" });
+                continue;
+            }
+
+            // List Item Create
+        } else if (job.type == "LIST_ITEM_CREATE") {
+            const { item } = job.payload as ListOpPayloadMap["LIST_ITEM_CREATE"];
+            const existingItem = await prisma.listItem.findUnique({
+                where: { id: item.id }
+            });
+            if (existingItem) {
+                responseQueue.push({ job: job, result: "Fail" });
+                continue;
+            }
+            try {
+                await prisma.listItem.create({
+                    data: {
+                        id: item.id,
+                        listId: item.listId,
+                        name: item.name,
+                        description: item.description,
+                        completed: item.completed,
+                        position: item.position,
+                        priority: item.priority,
+                        dueDate: item.dueDate ? millisToSeconds(item.dueDate) : null,
+                        quantity: item.quantity,
+                        unit: item.unit,
+                        createdAt: nowInSeconds(),
+                        updatedAt: nowInSeconds(),
+                    }
+                });
+                console.log("Sync create list item successful");
+                responseQueue.push({ job: job, result: "Success" });
+                continue;
+            } catch (error: unknown) {
+                console.error('Failed to create list item:', error);
+                responseQueue.push({ job: job, result: "Fail" });
+                continue;
+            }
+
+            // List Item Update
+        } else if (job.type == "LIST_ITEM_UPDATE") {
+            const { item } = job.payload as ListOpPayloadMap["LIST_ITEM_UPDATE"];
+            const existingItem = await prisma.listItem.findUnique({
+                where: { id: item.id }
+            });
+            if (!existingItem) {
+                responseQueue.push({ job: job, result: "Fail" });
+                continue;
+            }
+            if (secondsToMillis(existingItem.updatedAt) < item.updatedAt) {
+                try {
+                    await prisma.listItem.update({
+                        where: { id: item.id },
+                        data: {
+                            name: item.name,
+                            description: item.description,
+                            completed: item.completed,
+                            position: item.position,
+                            priority: item.priority,
+                            dueDate: item.dueDate ? millisToSeconds(item.dueDate) : null,
+                            quantity: item.quantity,
+                            unit: item.unit,
+                            updatedAt: millisToSeconds(item.updatedAt),
+                        },
+                    });
+                    console.log("Sync update list item successful");
+                    responseQueue.push({ job: job, result: "Success" });
+                    continue;
+                } catch (error: unknown) {
+                    console.error('Failed to update list item:', error);
+                    responseQueue.push({ job: job, result: "Fail" });
+                    continue;
+                }
+            } else {
+                responseQueue.push({ job: job, result: "Success" });
+                continue;
+            }
+
+            // List Item Delete
+        } else if (job.type == "LIST_ITEM_DELETE") {
+            const idPayload = job.payload as ListOpPayloadMap["LIST_ITEM_DELETE"];
+            const existingItem = await prisma.listItem.findUnique({
+                where: { id: idPayload.id }
+            });
+            if (!existingItem) {
+                responseQueue.push({ job: job, result: "Fail" });
+                continue;
+            }
+            try {
+                await prisma.listItem.delete({
+                    where: { id: idPayload.id }
+                });
+                console.log("Sync delete list item successful");
+                responseQueue.push({ job: job, result: "Success" });
+                continue;
+            } catch (error: unknown) {
+                console.error('Failed to delete list item:', error);
+                responseQueue.push({ job: job, result: "Fail" });
+                continue;
+            }
+
+            // List Item Toggle (completed)
+        } else if (job.type == "LIST_ITEM_TOGGLE") {
+            const { item } = job.payload as ListOpPayloadMap["LIST_ITEM_TOGGLE"];
+            const existingItem = await prisma.listItem.findUnique({
+                where: { id: item.id }
+            });
+            if (!existingItem) {
+                responseQueue.push({ job: job, result: "Fail" });
+                continue;
+            }
+            try {
+                await prisma.listItem.update({
+                    where: { id: item.id },
+                    data: {
+                        completed: !item.completed, // use client's original state flipped, not server state
+                        updatedAt: nowInSeconds(),
+                    },
+                });
+                console.log("Sync toggle list item successful");
+                responseQueue.push({ job: job, result: "Success" });
+                continue;
+            } catch (error: unknown) {
+                console.error('Failed to toggle list item:', error);
+                responseQueue.push({ job: job, result: "Fail" });
                 continue;
             }
         } else {
             console.log("there is no such type of job");
-            responseQueue.push({job: job, result: 'Fail'});
+            responseQueue.push({ job: job, result: 'Fail' });
         }
     }
-    
+
     // Return the results of all processed jobs
     return NextResponse.json({ results: responseQueue });
 }

@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from "react";
-import { ModeToggle } from "./misc/ModeToggle";
+import React, { useState, useRef, useEffect } from "react";
+import { ModeToggle } from "./ModeToggle";
 import { SquareStar, Menu } from "lucide-react";
-import { CalendarDrawer } from "./calendars/CalendarDrawer";
-import { AuthButtons } from "./misc/AuthButtons";
-import { useOnlineStatus } from "../providers/online-status";
+import { CalendarDrawer } from "../calendars/CalendarDrawer";
+import { AuthButtons } from "./AuthButtons";
+import { useOnlineStatus } from "../../providers/online-status";
 import Link from "next/link";
 
 export default function NavBar() {

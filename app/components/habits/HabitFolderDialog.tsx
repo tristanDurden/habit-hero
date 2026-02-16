@@ -8,12 +8,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Habit } from "@/lib/types";
-import useHabitStore from "../habitStore";
+import useHabitStore from "../../habitStore";
 import { Button } from "@/components/ui/button";
 import { FolderOpen } from "lucide-react";
 import { toast } from "sonner";
-import { useHabitToFolderAddition } from "../hooks/folders/useHabitToFolderAddition";
-import { useHabitToFolderDeletion } from "../hooks/folders/useHabitToFolderDeletion";
+import { useHabitToFolderAddition } from "../../hooks/folders/useHabitToFolderAddition";
+import { useHabitToFolderDeletion } from "../../hooks/folders/useHabitToFolderDeletion";
 
 type Props = {
   habit: Habit;

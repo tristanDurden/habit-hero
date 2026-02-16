@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     }
     const user = await prisma.user.findUnique({
         where: { email: session.user.email },
-        include: { habits: true, folders: true, habitLog: true }
+        include: { habits: true, folders: true, habitLog: true, lists: { include: { items: true } } }
     })
     if (!user) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -20,5 +20,6 @@ export async function GET(req: NextRequest) {
     const habits = user.habits;
     const folders = user.folders;
     const habitLog = user.habitLog;
-    return NextResponse.json({ habits, folders, habitLog });
+    const lists = user.lists;
+    return NextResponse.json({ habits, folders, habitLog, lists });
 }

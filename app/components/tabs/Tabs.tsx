@@ -1,7 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TabsSettings from "./TabsSettings";
-import useHabitStore from "../habitStore";
-import HabitCard from "./HabitCard";
+import useHabitStore from "../../habitStore";
+import HabitCard from "../habits/HabitCard";
 import { useEffect, useState, useRef } from "react";
 import { Habit as DbHabit, Folder as DbFolder } from "@prisma/client";
 import { dbHabitToUi, dbFolderToUi } from "@/lib/dbformatting";

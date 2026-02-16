@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
-import HabitDialog from "./HabitDialog";
-import useHabitStore from "../habitStore";
-import HabitCard from "./HabitCard";
-import useUiStore from "../uiStore";
+import HabitDialog from "../habits/HabitDialog";
+import useHabitStore from "../../habitStore";
+import HabitCard from "../habits/HabitCard";
+import useUiStore from "../../uiStore";
 import { AddDefaultHabit } from "@/lib/types";
 
 export default function Loading() {

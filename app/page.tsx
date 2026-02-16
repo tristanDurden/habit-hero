@@ -1,6 +1,6 @@
 "use client";
 
-import NavBar from "./components/NavBar";
+import NavBar from "./components/misc/NavBar";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";

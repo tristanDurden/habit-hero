@@ -42,6 +42,56 @@ export type Folder = {
   updatedAt: number;
 }
 
+export type List = {
+  id: string;
+
+  name: string;
+  description?: string;
+  items: ListItem[];
+
+  type: "tasks" | "shopping" | "notes";
+
+
+  createdAt: number;
+  updatedAt: number;
+
+  isArchived: boolean;
+}
+
+
+export type ListItem = {
+  id: string;
+  listId: string;
+
+  name: string;
+  description?: string;
+
+  position: number;
+
+  completed: boolean;
+
+  priority?: "low" | "medium" | "high";
+
+  dueDate?: number | null;
+
+  quantity?: number; // useful for shopping
+  unit?: string;     // "kg", "pcs", etc.
+
+  createdAt: number;
+  updatedAt: number;
+}
+
+export const AddDefaultList: List = {
+  id: "",
+  name: "Enter the name",
+  description: "Enter the description of list",
+  type: "tasks",
+  createdAt: Math.floor(Date.now() / 1000),
+  updatedAt: Math.floor(Date.now() / 1000),
+  isArchived: false,
+  items: [],
+}
+
 export const numberTranslater: Record<string, number> = {
   "one": 1,
   "two": 2,

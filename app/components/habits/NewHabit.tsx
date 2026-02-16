@@ -13,10 +13,10 @@ import { DialogClose } from "@/components/ui/dialog";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
 import { Habit as uiHabit } from "@/lib/types";
-import { Calendar04 } from "./Calendar";
+import { Calendar04 } from "../calendars/Calendar";
 import { now, nowDate, nowInSeconds } from "@/lib/timeCounter";
-import { useHabitCreation } from "../hooks/habits/useHabitCreation";
-import { useHabitUpdate } from "../hooks/habits/useHabitUpdate";
+import { useHabitCreation } from "../../hooks/habits/useHabitCreation";
+import { useHabitUpdate } from "../../hooks/habits/useHabitUpdate";
 
 type Props = {
   habit: uiHabit;

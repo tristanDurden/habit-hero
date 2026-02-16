@@ -1,7 +1,8 @@
 import { Habit as dbHabit, Folder as dbFolder, HabitLog as dbHabitLog } from "@prisma/client";
 import { Habit as uiHabit, Folder as uiFolder, HabitLog } from "@/lib/types";
+import { List as uiList } from "@/lib/types";
 import { QueuedOp } from "@/lib/queuedOps";
-import { dbFolderToUi, dbHabitToUi } from "@/lib/dbformatting";
+import { dbFolderToUi, dbHabitToUi, dbListToUi, dbListWithItems } from "@/lib/dbformatting";
 import { FolderOpPayloadMap } from "./queuedFolderOps";
 
 export function mergeServerHabitsToLocal(
@@ -250,4 +251,59 @@ export function mergeServerHabitLogToLocal(
   }
 
   return merged;
+}
+
+export function mergeServerListsToLocal(serverLists: dbListWithItems[], localLists: uiList[], queue: QueuedOp[]): uiList[] {
+  const byId = new Map<string, uiList>();
+
+  for (const list of localLists) {
+    byId.set(list.id, list);
+  }
+
+  for (const serverList of serverLists) {
+    const local = byId.get(serverList.id);
+    const serverUI = dbListToUi(serverList);
+
+    if (!local) {
+      byId.set(serverUI.id, serverUI);
+      continue;
+    }
+
+    // Both exist → compare updatedAt (prefer newer, tie goes to server)
+    if (serverUI.updatedAt >= local.updatedAt) {
+      byId.set(serverUI.id, serverUI);
+    }
+    // If local is newer → keep local (it will sync later)
+  }
+
+  for (const localList of localLists) {
+    if (serverLists.find((l) => l.id === localList.id)) continue;
+
+    // Check if this list has any queued operations
+    const queued = queue.filter((op) => {
+      if (op.type === "LIST_DELETE") {
+        const payload = op.payload as { id: string };
+        return payload.id === localList.id;
+      } else if (op.type === "LIST_CREATE") {
+        const payload = op.payload as uiList;
+        return payload.id === localList.id;
+      } else if (op.type === "LIST_UPDATE") {
+        const payload = op.payload as uiList;
+        return payload.id === localList.id;
+      }
+      return false;
+    });
+
+    // If queued for CREATE → keep
+    if (queued.some((op) => op.type === "LIST_CREATE")) continue;
+
+    // If queued for DELETE → remove
+    if (queued.some((op) => op.type === "LIST_DELETE")) {
+      byId.delete(localList.id);
+      continue;
+    }
+
+    // Orphaned list → keep it (will sync later if needed)
+  }
+  return Array.from(byId.values());
 }

@@ -8,7 +8,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Habit } from "@/lib/types";
-import useHabitStore from "../habitStore";
+import useHabitStore from "../../habitStore";
 
 type Props = {
   chosenHabits: Habit[];

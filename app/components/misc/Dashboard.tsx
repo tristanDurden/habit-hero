@@ -1,11 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
-import useHabitStore from "../habitStore";
-import HabitCard from "./habits/HabitCard";
-import HabitDialog from "./habits/HabitDialog";
+import HabitDialog from "../habits/HabitDialog";
 import { AddDefaultHabit } from "@/lib/types";
-import ActivityTable from "./misc/ActivityTable";
+import ActivityTable from "./ActivityTable";
 import { Session } from "next-auth";
 import Tabs from "@/app/components/tabs/Tabs";
 

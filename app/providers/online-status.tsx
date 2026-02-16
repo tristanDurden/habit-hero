@@ -8,14 +8,16 @@ import {
   useCallback,
 } from "react";
 import useHabitStore from "../habitStore";
+import useListsStore from "../listsStore";
 import { Habit as dbHabit, Folder as dbFolder, HabitLog as dbHabitLog } from "@prisma/client";
-import { dbHabitToUi } from "@/lib/dbformatting";
+import { dbListWithItems } from "@/lib/dbformatting";
 import { Habit as uiHabit, Folder as uiFolder } from "@/lib/types";
 import { QueuedOp } from "@/lib/queuedOps";
 import {
   mergeServerFoldersToLocal,
   mergeServerHabitsToLocal,
   mergeServerHabitLogToLocal,
+  mergeServerListsToLocal,
 } from "@/lib/onlineFunc";
 
 type OnlineStatusContextValue = {
@@ -46,7 +48,7 @@ export function OnlineStatusProvider({
       cache: "no-store",
     });
     if (!response.ok) throw new Error("Failed to fetch latest data from db");
-    const data: { habits: dbHabit[]; folders: dbFolder[]; habitLog: dbHabitLog[] } =
+    const data: { habits: dbHabit[]; folders: dbFolder[]; habitLog: dbHabitLog[]; lists: dbListWithItems[] } =
       await response.json();
     return data;
   }
@@ -82,13 +84,15 @@ export function OnlineStatusProvider({
       let serverHabits: dbHabit[] = [];
       let serverFolders: dbFolder[] = [];
       let serverHabitLog: dbHabitLog[] = [];
+      let serverLists: dbListWithItems[] = [];
       try {
         const data = await fetchLatestDataFromServer();
         serverHabits = data.habits;
         serverFolders = data.folders;
         serverHabitLog = data.habitLog || [];
+        serverLists = data.lists || [];
         console.log(
-          `📥 Fetched ${serverHabits.length} habits, ${serverFolders.length} folders, and ${serverHabitLog.length} habit logs from server`
+          `📥 Fetched ${serverHabits.length} habits, ${serverFolders.length} folders, ${serverHabitLog.length} habit logs, and ${serverLists.length} lists from server`
         );
       } catch (err) {
         console.error("❌ Could not fetch latest data from database:", err);
@@ -132,6 +136,18 @@ export function OnlineStatusProvider({
         );
         useHabitStore.setState({ habitLog: mergedHabitLog });
         console.log(`✅ Merged habit logs`);
+      }
+
+      // Merge server lists with local lists
+      const localLists = useListsStore.getState().lists || [];
+      if (serverLists.length > 0 || localLists.length > 0) {
+        const mergedLists = mergeServerListsToLocal(
+          serverLists,
+          localLists,
+          queue
+        );
+        useListsStore.setState({ lists: mergedLists });
+        console.log(`✅ Merged ${mergedLists.length} lists`);
       }
 
       // Step 4: Process the queue (sync local changes to server)

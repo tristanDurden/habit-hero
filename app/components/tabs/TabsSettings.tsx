@@ -7,13 +7,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import useHabitStore from "../habitStore";
+import useHabitStore from "../../habitStore";
 import { Habit } from "@/lib/types";
-import FolderSettingsAdditionDialog from "./FolderSettingsAdditionDialog";
+import FolderSettingsAdditionDialog from "../folders/FolderSettingsAdditionDialog";
 import { toast } from "sonner";
-import FolderSettingsHabitAdditionDialog from "./FolderSettingsHabitAdditionDialog";
-import { useFolderDeletion } from "../hooks/folders/useFolderDeletion";
-import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import FolderSettingsHabitAdditionDialog from "../folders/FolderSettingsHabitAdditionDialog";
+import { useFolderDeletion } from "../../hooks/folders/useFolderDeletion";
+import DeleteConfirmationModal from "../misc/DeleteConfirmationModal";
 
 export default function TabsSettings() {
   //  store consts

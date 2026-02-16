@@ -1,34 +1,29 @@
 "use client";
-import NavBar from "../components/NavBar";
-import { useSession } from "next-auth/react";
-import ActivityTable from "../components/ActivityTable";
-import Tabs from "../components/Tabs";
-import { Button } from "@/components/ui/button";
 import { AddDefaultHabit } from "@/lib/types";
-import HabitDialog from "../components/HabitDialog";
+import ActivityTable from "../components/misc/ActivityTable";
+import HabitDialog from "../components/habits/HabitDialog";
+import Tabs from "../components/tabs/Tabs";
+import { useSession } from "next-auth/react";
+import NewEditList from "../components/lists/NewEditList";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <NavBar />
-      <div className="flex flex-row gap-5 items-center px-6 py-3">
-        <h1>
-          Welcome, {session?.user?.name || "User"}! Your habit journey starts
-          here 💪
-        </h1>
-
+    <>
+      <h1 className="text-center">
+        Welcome, {session?.user?.name || "User"}! Your habit journey starts
+        here 💪
+      </h1>
+      <div className="flex flex-row gap-5 items-center justify-center px-6 py-3">
         <HabitDialog
           mode="add"
           habit={AddDefaultHabit}
           className="cursor-pointer p-0 m-0 items-center justify-center border-2 border-gray-300 rounded-md px-2 py-1"
         />
+        <NewEditList mode="add" />
       </div>
-      <main className="flex-1 p-6">
-        <Tabs />
-      </main>
+      <p>All habits and list which are have to be done today go here</p>
       <ActivityTable />
-    </div>
+    </>
   );
 }

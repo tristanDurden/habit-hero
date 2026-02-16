@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect } from "react";
-import useHabitStore from "../habitStore";
+import useHabitStore from "../../habitStore";
 import { getMonthDay, getWeekDay, Habit, numberTranslater } from "@/lib/types";
 import {
   Card,
@@ -12,10 +12,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Trash } from "lucide-react";
-import HabitDialog from "./HabitDialog";
+import HabitDialog from "../habits/HabitDialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Timer } from "./Timer";
+import { Timer } from "../timer/Timer";
 import isReadyToComplete, {
   howManyDaysLeftFromLast,
   msUntilNextScheduledDay,
@@ -23,13 +23,13 @@ import isReadyToComplete, {
 } from "@/lib/timeCounter";
 
 import { Progress } from "@/components/ui/progress";
-import { HabitInfo } from "./HabitInfo";
-import { useOnlineStatus } from "../providers/online-status";
-import { useHabitCompletion } from "../hooks/habits/useHabitCompletion";
-import { useHabitDeletion } from "../hooks/habits/useHabitDeletion";
-import HabitFolderDialog from "./HabitFolderDialog";
+import { HabitInfo } from "../habits/HabitInfo";
+import { useOnlineStatus } from "../../providers/online-status";
+import { useHabitCompletion } from "../../hooks/habits/useHabitCompletion";
+import { useHabitDeletion } from "../../hooks/habits/useHabitDeletion";
+import HabitFolderDialog from "../habits/HabitFolderDialog";
 import { lastCompletedFormatted } from "@/lib/timeFormatting";
-import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import DeleteConfirmationModal from "../misc/DeleteConfirmationModal";
 
 type Props = {
   habit: Habit;
