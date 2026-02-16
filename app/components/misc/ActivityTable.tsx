@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
-import useHabitStore from "../habitStore";
+import { useEffect, useState, useRef } from "react";
+import useHabitStore from "../../habitStore";
 import { nowDate, todayKey } from "@/lib/timeCounter";
 import {
   activityReducerDurationForDay,

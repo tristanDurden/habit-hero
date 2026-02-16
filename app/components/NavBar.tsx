@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from "react";
-import { ModeToggle } from "./ModeToggle";
+import { useState, useRef, useEffect } from "react";
+import { ModeToggle } from "./misc/ModeToggle";
 import { SquareStar, Menu } from "lucide-react";
-import { CalendarDrawer } from "./CalendarDrawer";
-import { AuthButtons } from "./AuthButtons";
+import { CalendarDrawer } from "./calendars/CalendarDrawer";
+import { AuthButtons } from "./misc/AuthButtons";
 import { useOnlineStatus } from "../providers/online-status";
 import Link from "next/link";
 
@@ -16,7 +16,13 @@ export default function NavBar() {
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      const target = event.target as HTMLElement;
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(target) &&
+        !target.closest("[data-radix-popper-content-wrapper]") &&
+        !target.closest("[role='dialog']")
+      ) {
         setIsMenuOpen(false);
       }
     };

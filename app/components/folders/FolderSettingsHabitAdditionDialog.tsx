@@ -6,11 +6,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import useHabitStore from "../habitStore";
+import useHabitStore from "../../habitStore";
 import { Button } from "@/components/ui/button";
 import { Folder } from "@/lib/types";
-import { useHabitToFolderAddition } from "../hooks/folders/useHabitToFolderAddition";
-import { useHabitToFolderDeletion } from "../hooks/folders/useHabitToFolderDeletion";
+import { useHabitToFolderAddition } from "../../hooks/folders/useHabitToFolderAddition";
+import { useHabitToFolderDeletion } from "../../hooks/folders/useHabitToFolderDeletion";
 
 type Props = {
   folder: Folder;

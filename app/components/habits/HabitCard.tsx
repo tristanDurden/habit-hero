@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect } from "react";
-import useHabitStore from "../habitStore";
-import { getWeekDay, Habit, numberTranslater } from "@/lib/types";
+import useHabitStore from "../../habitStore";
+import { getMonthDay, getWeekDay, Habit, numberTranslater } from "@/lib/types";
 import {
   Card,
   CardAction,
@@ -12,10 +12,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Trash } from "lucide-react";
-import HabitDialog from "./HabitDialog";
+import HabitDialog from "../habits/HabitDialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Timer } from "./Timer";
+import { Timer } from "../timer/Timer";
 import isReadyToComplete, {
   howManyDaysLeftFromLast,
   msUntilNextScheduledDay,
@@ -23,12 +23,13 @@ import isReadyToComplete, {
 } from "@/lib/timeCounter";
 
 import { Progress } from "@/components/ui/progress";
-import { HabitInfo } from "./HabitInfo";
-import { useOnlineStatus } from "../providers/online-status";
-import { useHabitCompletion } from "../hooks/habits/useHabitCompletion";
-import { useHabitDeletion } from "../hooks/habits/useHabitDeletion";
-import HabitFolderDialog from "./HabitFolderDialog";
+import { HabitInfo } from "../habits/HabitInfo";
+import { useOnlineStatus } from "../../providers/online-status";
+import { useHabitCompletion } from "../../hooks/habits/useHabitCompletion";
+import { useHabitDeletion } from "../../hooks/habits/useHabitDeletion";
+import HabitFolderDialog from "../habits/HabitFolderDialog";
 import { lastCompletedFormatted } from "@/lib/timeFormatting";
+import DeleteConfirmationModal from "../misc/DeleteConfirmationModal";
 
 type Props = {
   habit: Habit;
@@ -56,7 +57,7 @@ export default function HabitCard({ habit }: Props) {
   const progress =
     habit.frequency[1] === "day"
       ? (habit.counter * 100) / frequencyNumber
-      : (habit.counter * 100) / 1;
+      : (habit.counter * 100) / 1; // week and month complete in a single action
 
   //  checking if time passed to complete habit
   useEffect(() => {
@@ -153,9 +154,7 @@ export default function HabitCard({ habit }: Props) {
           <CardAction className="grid grid-cols-2 gap-2 items-center justify-center">
             <HabitDialog mode="update" habit={habit} />
 
-            <button onClick={handleDeletion} className="cursor-pointer">
-              <Trash size={20} />
-            </button>
+            <DeleteConfirmationModal job={{ type: "habit", id: habit.id}} />
             <HabitInfo habit={habit} />
             <HabitFolderDialog habit={habit} />
           </CardAction>
@@ -188,6 +187,15 @@ export default function HabitCard({ habit }: Props) {
               {habit.schedule.length > 0 &&
                 habit.schedule.map((item, id) => (
                   <p key={id}>{getWeekDay(item)}</p>
+                ))}
+            </>
+          )}
+          {habit.frequency[1] === "month" && (
+            <>
+              <p>Schedule (days of month):</p>
+              {habit.schedule.length > 0 &&
+                habit.schedule.map((item, id) => (
+                  <p key={id}>{getMonthDay(item)}</p>
                 ))}
             </>
           )}

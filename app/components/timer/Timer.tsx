@@ -9,12 +9,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
-import { TimerConfigForm } from "../types/timer";
-import useHabitStore from "../habitStore";
-import useTimerStore from "../timerStore";
-import TimerInputs from "./timer/TimerInputs";
-import TimerButtons from "./timer/TimerButtons";
-import TimerStatus from "./timer/TimerStatus";
+import { TimerConfigForm } from "../../types/timer";
+import useHabitStore from "../../habitStore";
+import useTimerStore from "../../timerStore";
+import TimerInputs from "./TimerInputs";
+import TimerButtons from "./TimerButtons";
+import TimerStatus from "./TimerStatus";
 import { Timer as TimerIcon } from "lucide-react";
 
 type Props = {

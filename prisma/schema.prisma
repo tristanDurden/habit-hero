@@ -25,6 +25,7 @@ model User {
   habits   Habit[]
   habitLog HabitLog[]
   folders  Folder[]
+  lists    List[]
 }
 
 model Account {
@@ -102,4 +103,35 @@ model Folder {
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   habits Habit[]
+}
+
+model List {
+  id          String  @id
+  name        String
+  description String?
+  type        String // tasks, shopping, notes
+  isArchived  Boolean @default(false)
+  createdAt   Int
+  updatedAt   Int
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items ListItem[]
+}
+
+model ListItem {
+  id          String  @id
+  listId      String
+  name        String
+  description String?
+  completed   Boolean @default(false)
+  position    Int
+  priority    String? // low, medium, high
+  dueDate     Int?
+  quantity    Int?
+  unit        String? // kg, pcs, etc.
+  createdAt   Int
+  updatedAt   Int
+
+  list List @relation(fields: [listId], references: [id], onDelete: Cascade)
 }

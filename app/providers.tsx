@@ -1,10 +1,9 @@
 "use client";
 
 import { SessionProvider } from "next-auth/react";
-import { ThemeProvider } from "./components/ThemeProvider";
+import { ThemeProvider } from "./components/misc/ThemeProvider";
 import { Toaster } from "sonner";
 import { OnlineStatusProvider } from "./providers/online-status";
-
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>

@@ -8,13 +8,16 @@ import {
   useCallback,
 } from "react";
 import useHabitStore from "../habitStore";
-import { Habit as dbHabit, Folder as dbFolder } from "@prisma/client";
-import { dbHabitToUi } from "@/lib/dbformatting";
+import useListsStore from "../listsStore";
+import { Habit as dbHabit, Folder as dbFolder, HabitLog as dbHabitLog } from "@prisma/client";
+import { dbListWithItems } from "@/lib/dbformatting";
 import { Habit as uiHabit, Folder as uiFolder } from "@/lib/types";
 import { QueuedOp } from "@/lib/queuedOps";
 import {
   mergeServerFoldersToLocal,
   mergeServerHabitsToLocal,
+  mergeServerHabitLogToLocal,
+  mergeServerListsToLocal,
 } from "@/lib/onlineFunc";
 
 type OnlineStatusContextValue = {
@@ -45,7 +48,7 @@ export function OnlineStatusProvider({
       cache: "no-store",
     });
     if (!response.ok) throw new Error("Failed to fetch latest data from db");
-    const data: { habits: dbHabit[]; folders: dbFolder[] } =
+    const data: { habits: dbHabit[]; folders: dbFolder[]; habitLog: dbHabitLog[]; lists: dbListWithItems[] } =
       await response.json();
     return data;
   }
@@ -77,24 +80,29 @@ export function OnlineStatusProvider({
       // Update online status
       //setOnline(true);
 
-      // Fetch latest habits and folders from database
+      // Fetch latest habits, folders, and habit logs from database
       let serverHabits: dbHabit[] = [];
       let serverFolders: dbFolder[] = [];
+      let serverHabitLog: dbHabitLog[] = [];
+      let serverLists: dbListWithItems[] = [];
       try {
         const data = await fetchLatestDataFromServer();
         serverHabits = data.habits;
         serverFolders = data.folders;
+        serverHabitLog = data.habitLog || [];
+        serverLists = data.lists || [];
         console.log(
-          `📥 Fetched ${serverHabits.length} habits and ${serverFolders.length} folders from server`
+          `📥 Fetched ${serverHabits.length} habits, ${serverFolders.length} folders, ${serverHabitLog.length} habit logs, and ${serverLists.length} lists from server`
         );
       } catch (err) {
-        console.error("❌ Could not fetch latest habits from database:", err);
+        console.error("❌ Could not fetch latest data from database:", err);
       }
 
       // Get current local state
       const store = useHabitStore.getState();
       const localHabits = store.habits || [];
       const localFolders = store.folders || [];
+      const localHabitLog = store.habitLog || {};
       const queue = store.queue || [];
 
       // Merge server habits with local habits
@@ -118,6 +126,28 @@ export function OnlineStatusProvider({
         );
         useHabitStore.setState({ folders: mergedFolders });
         console.log(`✅ Merged ${mergedFolders.length} folders`);
+      }
+      // Merge server habit logs with local habit logs
+      if (serverHabitLog.length > 0 || Object.keys(localHabitLog).length > 0) {
+        const mergedHabitLog = mergeServerHabitLogToLocal(
+          serverHabitLog,
+          localHabitLog,
+          queue
+        );
+        useHabitStore.setState({ habitLog: mergedHabitLog });
+        console.log(`✅ Merged habit logs`);
+      }
+
+      // Merge server lists with local lists
+      const localLists = useListsStore.getState().lists || [];
+      if (serverLists.length > 0 || localLists.length > 0) {
+        const mergedLists = mergeServerListsToLocal(
+          serverLists,
+          localLists,
+          queue
+        );
+        useListsStore.setState({ lists: mergedLists });
+        console.log(`✅ Merged ${mergedLists.length} lists`);
       }
 
       // Step 4: Process the queue (sync local changes to server)

@@ -1,13 +1,15 @@
-import { Habit as dbHabit, Folder as dbFolder, HabitLog as dbHabitLog } from "@prisma/client";
-import { frequencyTuple, Habit as HabitUi, Folder as uiFolder, HabitLog as uiHabitLog} from "@/lib/types";
+import { Habit as dbHabit, Folder as dbFolder, HabitLog as dbHabitLog, ListItem as dbListItem, Prisma } from "@prisma/client";
+
+export type dbListWithItems = Prisma.ListGetPayload<{ include: { items: true } }>;
+import { frequencyTuple, Habit as HabitUi, Folder as uiFolder, HabitLog as uiHabitLog, List as uiList, ListItem as uiListItem } from "@/lib/types";
 
 export function scheduleConcat(array: Date[]): string {
     return Array.isArray(array) ? array.map((d: unknown) => {
-          const dateObj = typeof d === "string" ? new Date(d) : new Date(d as Date);
-          return dateObj.toISOString();
-        })
+        const dateObj = typeof d === "string" ? new Date(d) : new Date(d as Date);
+        return dateObj.toISOString();
+    })
         .join("/")
-    : "";
+        : "";
 }
 
 export function frequencyConcat(frequency: frequencyTuple): string {
@@ -55,7 +57,7 @@ export function uiHabitToDb(uiHabit: HabitUi, userId: string): dbHabit {
     const dbFrequency = frequencyConcat(uiHabit.frequency);
     const dbLastCompleted = millisToSeconds(uiHabit.lastCompleted);
     const dbUpdatedAt = millisToSeconds(uiHabit.updatedAt);
-    
+
     return {
         id: uiHabit.id,
         title: uiHabit.title,
@@ -93,4 +95,38 @@ export function dbHabitLogToUi(dbHabitLog: dbHabitLog[]): uiHabitLog {
         });
     }
     return formattedLog;
+}
+
+
+
+export function dbListToUi(dbList: dbListWithItems): uiList {
+    const uiItems = dbList.items.map((item: dbListItem) => dbListItemToUi(item));
+    const uiUpdatedAt = secondsToMillis(dbList.updatedAt);
+    return {
+        id: dbList.id,
+        name: dbList.name,
+        description: dbList.description || undefined,
+        items: uiItems,
+        type: dbList.type as "tasks" | "shopping" | "notes",
+        createdAt: secondsToMillis(dbList.createdAt),
+        updatedAt: uiUpdatedAt,
+        isArchived: dbList.isArchived,
+    };
+}
+export function dbListItemToUi(dbListItem: dbListItem): uiListItem {
+    const uiUpdatedAt = secondsToMillis(dbListItem.updatedAt);
+    return {
+        id: dbListItem.id,
+        listId: dbListItem.listId,
+        name: dbListItem.name,
+        description: dbListItem.description || undefined,
+        position: dbListItem.position,
+        completed: dbListItem.completed,
+        priority: (dbListItem.priority ?? undefined) as "low" | "medium" | "high" | undefined,
+        dueDate: dbListItem.dueDate ? secondsToMillis(dbListItem.dueDate) : undefined,
+        quantity: dbListItem.quantity || undefined,
+        unit: dbListItem.unit || undefined,
+        createdAt: secondsToMillis(dbListItem.createdAt),
+        updatedAt: uiUpdatedAt,
+    };
 }

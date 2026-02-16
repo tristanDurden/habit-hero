@@ -12,8 +12,8 @@ import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
 import { Folder } from "@/lib/types";
-import { useFolderCreation } from "../hooks/folders/useFolderCreation";
-import { useFolderUpdate } from "../hooks/folders/useFolderUpdate";
+import { useFolderCreation } from "../../hooks/folders/useFolderCreation";
+import { useFolderUpdate } from "../../hooks/folders/useFolderUpdate";
 import { nowInSeconds } from "@/lib/timeCounter";
 
 type Props =

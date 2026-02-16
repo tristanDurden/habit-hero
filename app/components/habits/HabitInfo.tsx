@@ -23,7 +23,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import CalendarHeatmap from "react-calendar-heatmap";
-import useHabitStore from "../habitStore";
+import useHabitStore from "../../habitStore";
 import { Habit } from "@/lib/types";
 import { CalendarDays } from "lucide-react";
 

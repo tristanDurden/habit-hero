@@ -2,12 +2,12 @@
 
 import React, { useState } from "react";
 import useHabitStore from "../habitStore";
-import HabitCard from "./HabitCard";
-import HabitDialog from "./HabitDialog";
+import HabitCard from "./habits/HabitCard";
+import HabitDialog from "./habits/HabitDialog";
 import { AddDefaultHabit } from "@/lib/types";
-import ActivityTable from "./ActivityTable";
+import ActivityTable from "./misc/ActivityTable";
 import { Session } from "next-auth";
-import Tabs from "@/app/components/Tabs";
+import Tabs from "@/app/components/tabs/Tabs";
 
 interface DashboardProps {
   session: Session; // or type from next-auth

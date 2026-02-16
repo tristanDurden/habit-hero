@@ -1,6 +1,6 @@
 import useHabitStore from "@/app/habitStore";
 import { useOnlineStatus } from "@/app/providers/online-status";
-import { keepDayStreak, keepWeekStreak, now, nowDate, todayKey } from "@/lib/timeCounter";
+import { keepDayStreak, keepMonthStreak, keepWeekStreak, now, nowDate, todayKey } from "@/lib/timeCounter";
 import { numberTranslater, Habit as uiHabit } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -28,7 +28,7 @@ export function useHabitCompletion() {
         const updatedHabit: uiHabit = {
           ...habit,
           counter: newCounter,
-          lastCompleted: now(),
+          lastCompleted: checkFinish ? now() : habit.lastCompleted,
           streak: checkFinish
             ? keepDayStreak(habit)
               ? habit.streak + 1
@@ -94,6 +94,58 @@ export function useHabitCompletion() {
         if (isOnline) {
           try {
             // Send habit update and log completion in a single atomic request
+            const response = await fetch("/api/habits", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                ...updatedHabit,
+                logCompletion: {
+                  date: todayKey(nowDate()),
+                  count: newCounter,
+                },
+              }),
+            });
+            if (!response.ok) {
+              throw new Error("Updating failed");
+            }
+          } catch {
+            toast.error("Failed to update habit", {
+              description: "Please try again later",
+              position: "top-center",
+            });
+            return;
+          }
+        } else {
+          // Queue atomic update with log (same as online behavior)
+          pushQueue({
+            type: "HABIT_UPDATE_WITH_LOG",
+            payload: {
+              habit: { ...updatedHabit },
+              logCompletion: {
+                date: todayKey(nowDate()),
+                count: newCounter,
+              },
+            },
+            timestamp: nowDate().toISOString(),
+          });
+        }
+        updateHabitLog(habit.id, todayKey(nowDate()));
+        updateHabit(updatedHabit);
+        // notify listeners that habit log changed (e.g. ActivityTable)
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("habitLogUpdated"));
+        }
+        // MONTH LOGIC
+      } else if (habit.frequency[1] === "month") {
+        const updatedHabit: uiHabit = {
+          ...habit,
+          counter: newCounter,
+          lastCompleted: now(),
+          streak: keepMonthStreak(habit) ? habit.streak + 1 : 1,
+          doneToday: true,
+        };
+        if (isOnline) {
+          try {
             const response = await fetch("/api/habits", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
