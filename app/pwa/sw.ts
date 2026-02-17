@@ -26,8 +26,8 @@ self.addEventListener("push", (event: PushEvent) => {
         const data = event.data.json();
         const options = {
             body: data.body,
-            icon: data.icon || "/icon.png",
-            badge: "/badge.png",
+            icon: data.icon || "/icons-habit-tracker/android-chrome-192x192.png",
+            badge: "/icons-habit-tracker/icon-96x96.png",
             vibrate: [100, 50, 100],
             data: {
                 dateOfArrival: Date.now(),

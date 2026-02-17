@@ -24,13 +24,7 @@ export default function PushNotificationManager() {
     )
     const [message, setMessage] = useState('')
    
-    useEffect(() => {
-      if ('serviceWorker' in navigator && 'PushManager' in window) {
-        setIsSupported(true)
-        registerServiceWorker()
-      }
-    }, [])
-   
+    
     async function registerServiceWorker() {
       const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/',
@@ -39,6 +33,13 @@ export default function PushNotificationManager() {
       const sub = await registration.pushManager.getSubscription()
       setSubscription(sub)
     }
+    
+    useEffect(() => {
+      if ('serviceWorker' in navigator && 'PushManager' in window) {
+        setIsSupported(true)
+        registerServiceWorker()
+      }
+    }, [])
    
     async function subscribeToPush() {
       const registration = await navigator.serviceWorker.ready
