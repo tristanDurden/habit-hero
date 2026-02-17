@@ -1,5 +1,8 @@
+"use client"
 import { useEffect, useState } from "react"
-import { subscribeUser, unsubscribeUser, sendNotification } from '../actions'
+import { subscribeUser, unsubscribeUser, sendTestNotification } from '../actions'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
  
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -47,46 +50,53 @@ export default function PushNotificationManager() {
       })
       setSubscription(sub)
       const serializedSub = JSON.parse(JSON.stringify(sub))
-      await subscribeUser(serializedSub)
+      await subscribeUser({
+        endpoint: serializedSub.endpoint,
+        p256dh: serializedSub.keys.p256dh,
+        auth: serializedSub.keys.auth,
+      })
     }
    
     async function unsubscribeFromPush() {
-      await subscription?.unsubscribe()
-      setSubscription(null)
-      await unsubscribeUser()
+      if (subscription) {
+        const endpoint = subscription.endpoint
+        await subscription.unsubscribe()
+        setSubscription(null)
+        await unsubscribeUser(endpoint)
+      }
     }
    
-    async function sendTestNotification() {
+    async function handleSendTestNotification() {
       if (subscription) {
-        await sendNotification(message)
+        await sendTestNotification(message)
         setMessage('')
       }
     }
    
     if (!isSupported) {
-      return <p>Push notifications are not supported in this browser.</p>
+      return <p className="text-sm text-muted-foreground">Push notifications are not supported in this browser.</p>
     }
    
     return (
-      <div>
-        <h3>Push Notifications</h3>
+      <div className="flex flex-col gap-2">
+        <h2 className="text-2xl font-bold">Push Notifications</h2>
         {subscription ? (
-          <>
-            <p>You are subscribed to push notifications.</p>
-            <button onClick={unsubscribeFromPush}>Unsubscribe</button>
-            <input
+          <div className="flex flex-col gap-2">
+            <p className="text-sm text-muted-foreground">You are subscribed to push notifications.</p>
+            <Button onClick={unsubscribeFromPush}>Unsubscribe</Button>
+            <Input
               type="text"
               placeholder="Enter notification message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
-            <button onClick={sendTestNotification}>Send Test</button>
-          </>
+            <Button onClick={handleSendTestNotification}>Send Test</Button>
+          </div>
         ) : (
-          <>
-            <p>You are not subscribed to push notifications.</p>
-            <button onClick={subscribeToPush}>Subscribe</button>
-          </>
+          <div className="flex flex-col gap-2">
+            <p className="text-sm text-muted-foreground">You are not subscribed to push notifications.</p>
+            <Button onClick={subscribeToPush}>Subscribe</Button>
+          </div>
         )}
       </div>
     )

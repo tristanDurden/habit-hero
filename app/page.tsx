@@ -4,7 +4,6 @@ import NavBar from "./components/misc/NavBar";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import PushNotificationManager from "./pwa/PushNotificationManager";
 import InstallPrompt from "./pwa/InstallPrompt";
 
 export default function Home() {
@@ -47,7 +46,6 @@ export default function Home() {
               </Button>
             </Link>
           </div>
-          <PushNotificationManager/>
           <InstallPrompt/>
           </>
         )}

@@ -12,8 +12,8 @@ export default function manifest(): MetadataRoute.Manifest {
         icons: [
             { "src": "/icons-habit-tracker/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
             { "src": "/icons-habit-tracker/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" },
-            { "src": "/icons-habit-tracker/maskable-icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-            { "src": "/icons-habit-tracker/maskable-icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+            { "src": "/icons-habit-tracker/maskable/maskable-icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+            { "src": "/icons-habit-tracker/maskable/maskable-icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
         ]
     }
 }

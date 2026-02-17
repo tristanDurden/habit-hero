@@ -22,10 +22,11 @@ model User {
   accounts      Account[]
   sessions      Session[]
 
-  habits   Habit[]
-  habitLog HabitLog[]
-  folders  Folder[]
-  lists    List[]
+  habits            Habit[]
+  habitLog          HabitLog[]
+  folders           Folder[]
+  lists             List[]
+  pushSubscriptions PushSubscription[]
 }
 
 model Account {
@@ -134,4 +135,16 @@ model ListItem {
   updatedAt   Int
 
   list List @relation(fields: [listId], references: [id], onDelete: Cascade)
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique(length: 768) @db.Text
+  p256dh    String   @db.Text
+  auth      String   @db.Text
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }

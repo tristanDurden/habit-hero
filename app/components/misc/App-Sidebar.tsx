@@ -44,6 +44,14 @@ import Link from "next/link"
                   </SidebarMenuButton>
                   </Link>
                 </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <Link href="/dashboard/settings">
+                  <SidebarMenuButton tooltip="Settings">
+                  <Settings />
+                    <span>Settings</span>
+                  </SidebarMenuButton>
+                  </Link>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroup>
           </SidebarContent>

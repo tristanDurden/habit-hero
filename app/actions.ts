@@ -1,6 +1,9 @@
 'use server'
 
+import { prisma } from '@/lib/prisma';
 import webpush, { PushSubscription } from 'web-push'
+import { authOptions } from './api/auth/[...nextauth]/route';
+import { getServerSession } from 'next-auth/next';
 
 webpush.setVapidDetails(
     '<mailto:thelossofsight@gmail.com>',
@@ -8,39 +11,89 @@ webpush.setVapidDetails(
     process.env.VAPID_PRIVATE_KEY!
 )
 
-let subscription: PushSubscription | null = null
 
-export async function subscribeUser(sub: PushSubscription) {
-    subscription = sub
-    // In a production environment, you would want to store the subscription in a database
-    // For example: await db.subscriptions.create({ data: sub })
+export async function subscribeUser(sub: { endpoint: string, p256dh: string, auth: string }) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+        return { success: false, error: 'Unauthorized' }
+    }
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+    });
+    if (!user) {
+        return { success: false, error: 'User not found' }
+    }
+    await prisma.pushSubscription.upsert({
+        where: { endpoint: sub.endpoint },
+        update: {
+            p256dh: sub.p256dh,
+            auth: sub.auth,
+        },
+        create: {
+            endpoint: sub.endpoint,
+            p256dh: sub.p256dh,
+            auth: sub.auth,
+            userId: user.id,
+            createdAt: new Date(),
+        }
+    })
+
     return { success: true }
 }
 
-export async function unsubscribeUser() {
-    subscription = null
-    // In a production environment, you would want to remove the subscription from the database
-    // For example: await db.subscriptions.delete({ where: { ... } })
+export async function unsubscribeUser(endpoint: string) {
+    await prisma.pushSubscription.delete({
+        where: { endpoint },
+    })
     return { success: true }
 }
+export async function sendNotification(userId: string, message: string) {
+    const subscriptions = await prisma.pushSubscription.findMany({
+        where: { userId },
+    })
 
-export async function sendNotification(message: string) {
-    if (!subscription) {
-        throw new Error('No subscription available')
+    if (subscriptions.length === 0) {
+        throw new Error('No subscriptions available')
     }
 
-    try {
-        await webpush.sendNotification(
-            subscription,
-            JSON.stringify({
-                title: 'Test Notification',
-                body: message,
-                icon: '/icon.png',
-            })
+    const results = await Promise.allSettled(
+        subscriptions.map((sub) =>
+            webpush.sendNotification(
+                {
+                    endpoint: sub.endpoint,
+                    keys: { p256dh: sub.p256dh, auth: sub.auth },
+                },
+                JSON.stringify({
+                    title: 'Habit Hero',
+                    body: message,
+                    icon: '/icon.png',
+                })
+            )
         )
-        return { success: true }
-    } catch (error) {
-        console.error('Error sending push notification:', error)
-        return { success: false, error: 'Failed to send notification' }
+    )
+
+    // Clean up expired/invalid subscriptions (410 Gone)
+    for (let i = 0; i < results.length; i++) {
+        if (results[i].status === 'rejected') {
+            await prisma.pushSubscription.delete({
+                where: { id: subscriptions[i].id },
+            }).catch(() => { })
+        }
     }
+
+    return { success: true }
+}
+
+export async function sendTestNotification(message: string) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+        return { success: false, error: 'Unauthorized' }
+    }
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+    });
+    if (!user) {
+        return { success: false, error: 'User not found' }
+    }
+    return sendNotification(user.id, message)
 }
