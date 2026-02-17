@@ -25,20 +25,26 @@ export default function PushNotificationManager() {
     const [message, setMessage] = useState('')
    
     
-    async function registerServiceWorker() {
-      const registration = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/',
-        updateViaCache: 'none',
-      })
-      const sub = await registration.pushManager.getSubscription()
-      setSubscription(sub)
-    }
-    
     useEffect(() => {
-      if ('serviceWorker' in navigator && 'PushManager' in window) {
-        setIsSupported(true)
-        registerServiceWorker()
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        return
       }
+
+      navigator.serviceWorker
+        .register('/sw.js', {
+          scope: '/',
+          updateViaCache: 'none',
+        })
+        .then((registration) => {
+          setIsSupported(true)
+          return registration.pushManager.getSubscription()
+        })
+        .then((sub) => {
+          if (sub) setSubscription(sub)
+        })
+        .catch((err) => {
+          console.error('Service worker registration failed:', err)
+        })
     }, [])
    
     async function subscribeToPush() {
