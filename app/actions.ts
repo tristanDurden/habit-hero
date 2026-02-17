@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import webpush, { PushSubscription } from 'web-push'
-import { authOptions } from './api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth/next';
 
 webpush.setVapidDetails(

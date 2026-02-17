@@ -1,4 +1,4 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { nowInSeconds } from "@/lib/timeCounter";
 import { ListItem } from "@/lib/types";

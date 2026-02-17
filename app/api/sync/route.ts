@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { QueuedOp } from "@/lib/queuedOps";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { nowInSeconds } from "@/lib/timeCounter";
 import { Habit as uiHabit } from "@/lib/types";
 import { FolderOpPayloadMap } from "@/lib/queuedFolderOps";

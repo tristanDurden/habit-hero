@@ -3,7 +3,7 @@ import { ListItem } from "@/lib/types";
 import { nowInSeconds } from "@/lib/timeCounter";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 
 
