@@ -21,6 +21,10 @@ COPY . .
 # Generate Prisma Client
 RUN npx prisma generate
 
+# NEXT_PUBLIC_* vars are inlined at build time — must be available during `npm run build`
+ARG NEXT_PUBLIC_VAPID_PUBLIC_KEY
+ENV NEXT_PUBLIC_VAPID_PUBLIC_KEY=$NEXT_PUBLIC_VAPID_PUBLIC_KEY
+
 # Build the application
 ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build

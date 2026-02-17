@@ -66,7 +66,7 @@ export async function sendNotification(userId: string, message: string) {
                 JSON.stringify({
                     title: 'Habit Hero',
                     body: message,
-                    icon: '/icon.png',
+                    icon: '/icons-habit-tracker/android-chrome-192x192.png',
                 })
             )
         )
