@@ -28,9 +28,10 @@ describe("timeCounter helpers", () => {
   });
 
   describe("todayKey", () => {
-    it("returns an ISO date string (YYYY-MM-DD)", () => {
-      const isoKey = todayKey(new Date("2024-01-20T15:30:45.000Z"));
-      expect(isoKey).toBe("2024-01-20");
+    it("returns a YYYY-MM-DD string in local timezone", () => {
+      // Use a date that resolves to the same calendar day in any timezone
+      const date = new Date(2024, 0, 20, 12, 0, 0); // Jan 20, 2024, noon local
+      expect(todayKey(date)).toBe("2024-01-20");
     });
   });
 
@@ -149,7 +150,7 @@ describe("timeCounter helpers", () => {
 
       let mod: typeof TimeCounterModule;
       jest.isolateModules(() => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         mod = require("@/lib/timeCounter");
       });
       // @ts-expect-no-error - assigned in isolateModules
@@ -162,7 +163,7 @@ describe("timeCounter helpers", () => {
       const dailyHabit = makeHabit({ frequency: ["one", "day"], schedule: [] });
       const result = mod.msUntilNextScheduledDay(dailyHabit);
 
-      expect(result).toBe(mod.msUntilMidnight);
+      expect(result).toBe(mod.msUntilMidnight());
     });
 
     it("returns msUntilMidnight when next scheduled day is tomorrow", () => {
@@ -176,7 +177,7 @@ describe("timeCounter helpers", () => {
 
       const result = mod.msUntilNextScheduledDay(weeklyHabit);
 
-      expect(result).toBe(mod.msUntilMidnight);
+      expect(result).toBe(mod.msUntilMidnight());
     });
 
     it("adds full days when the next scheduled day is more than one day away", () => {
@@ -190,7 +191,7 @@ describe("timeCounter helpers", () => {
 
       const result = mod.msUntilNextScheduledDay(weeklyHabit);
 
-      expect(result).toBe(mod.msUntilMidnight + mod.DAYDURATION);
+      expect(result).toBe(mod.msUntilMidnight() + mod.DAYDURATION);
     });
   });
 });

@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth/next';
 
 webpush.setVapidDetails(
-    '<mailto:thelossofsight@gmail.com>',
+    'mailto:thelossofsight@gmail.com',
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
     process.env.VAPID_PRIVATE_KEY!
 )
@@ -42,7 +42,7 @@ export async function subscribeUser(sub: { endpoint: string, p256dh: string, aut
 }
 
 export async function unsubscribeUser(endpoint: string) {
-    await prisma.pushSubscription.delete({
+    await prisma.pushSubscription.deleteMany({
         where: { endpoint },
     })
     return { success: true }
@@ -53,7 +53,7 @@ export async function sendNotification(userId: string, message: string) {
     })
 
     if (subscriptions.length === 0) {
-        throw new Error('No subscriptions available')
+        return { success: false, error: 'No subscriptions available. Please subscribe first.' }
     }
 
     const results = await Promise.allSettled(

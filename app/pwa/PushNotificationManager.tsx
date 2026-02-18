@@ -48,12 +48,15 @@ export default function PushNotificationManager() {
     }, [])
    
     async function subscribeToPush() {
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+      if (!vapidKey) {
+        console.error('NEXT_PUBLIC_VAPID_PUBLIC_KEY is not set. Push subscription will fail.')
+        return
+      }
       const registration = await navigator.serviceWorker.ready
       const sub = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(
-          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
-        ),
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
       })
       setSubscription(sub)
       const serializedSub = JSON.parse(JSON.stringify(sub))
@@ -75,7 +78,12 @@ export default function PushNotificationManager() {
    
     async function handleSendTestNotification() {
       if (subscription) {
-        await sendTestNotification(message)
+        const result = await sendTestNotification(message)
+        if (result?.error) {
+          console.error('Failed to send notification:', result.error)
+          alert(result.error)
+          return
+        }
         setMessage('')
       }
     }

@@ -17,9 +17,12 @@ export const MONTHDURATION = DAYDURATION * 31;
 const midnight = () => {
   return new Date().setHours(0, 0, 0, 0);
 };
-const nextMidnight = DAYDURATION + midnight();
 
-export const msUntilMidnight = nextMidnight - now();
+// Must be a function — if calculated once at module load it goes stale
+export const msUntilMidnight = () => {
+  const nextMidnight = midnight() + DAYDURATION;
+  return nextMidnight - now();
+};
 
 export default function isReadyToComplete(habit: Habit): boolean {
   const { lastCompleted, frequency, schedule } = habit;
@@ -59,7 +62,7 @@ export function keepMonthStreak(habit: Habit): boolean {
 
 // Calculate ms until the next scheduled completion window
 export function msUntilNextScheduledDay(habit: Habit): number {
-  if (habit.frequency[1] === "day") return msUntilMidnight;
+  if (habit.frequency[1] === "day") return msUntilMidnight();
 
   // week logic
   if (habit.frequency[1] === "week") {
@@ -79,8 +82,8 @@ export function msUntilNextScheduledDay(habit: Habit): number {
     }
 
     return daysUntilNext === 1
-      ? msUntilMidnight
-      : (daysUntilNext - 1) * DAYDURATION + msUntilMidnight;
+      ? msUntilMidnight()
+      : (daysUntilNext - 1) * DAYDURATION + msUntilMidnight();
   }
 
   // month logic
@@ -113,12 +116,12 @@ export function msUntilNextScheduledDay(habit: Habit): number {
     }
 
     return daysUntilNext === 1
-      ? msUntilMidnight
-      : (daysUntilNext - 1) * DAYDURATION + msUntilMidnight;
+      ? msUntilMidnight()
+      : (daysUntilNext - 1) * DAYDURATION + msUntilMidnight();
   }
 
   // fallback
-  return msUntilMidnight;
+  return msUntilMidnight();
 }
 
 export function howManyDaysLeftFromLast(last: Date, now: Date): string {
@@ -129,5 +132,11 @@ export function howManyDaysLeftFromLast(last: Date, now: Date): string {
   return `${difference} days ago`;
 }
 
-// Helper: format date as YYYY-MM-DD
-export const todayKey = (date: Date) => date.toISOString().split("T")[0];
+// Helper: format date as YYYY-MM-DD in the user's LOCAL timezone
+// (toISOString() would return UTC, which can be a different day)
+export const todayKey = (date: Date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
