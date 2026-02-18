@@ -47,7 +47,7 @@ export async function unsubscribeUser(endpoint: string) {
     })
     return { success: true }
 }
-export async function sendNotification(userId: string, message: string) {
+export async function sendNotification(userId: string, message: string, title: string = 'Habit Hero') {
     const subscriptions = await prisma.pushSubscription.findMany({
         where: { userId },
     })
@@ -64,7 +64,7 @@ export async function sendNotification(userId: string, message: string) {
                     keys: { p256dh: sub.p256dh, auth: sub.auth },
                 },
                 JSON.stringify({
-                    title: 'Habit Hero',
+                    title,
                     body: message,
                     icon: '/icons-habit-tracker/android-chrome-192x192.png',
                 })

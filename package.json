@@ -26,6 +26,7 @@
     "@serwist/next": "^9.5.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cron": "^4.4.0",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "lucide": "^0.542.0",
