@@ -1,15 +1,22 @@
 'use server'
 
 import { prisma } from '@/lib/prisma';
-import webpush, { PushSubscription } from 'web-push'
+import webpush from 'web-push'
 import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth/next';
 
-webpush.setVapidDetails(
-    'mailto:thelossofsight@gmail.com',
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-    process.env.VAPID_PRIVATE_KEY!
-)
+let vapidConfigured = false;
+
+function ensureVapidConfigured() {
+    if (!vapidConfigured) {
+        webpush.setVapidDetails(
+            'mailto:thelossofsight@gmail.com',
+            process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+            process.env.VAPID_PRIVATE_KEY!
+        );
+        vapidConfigured = true;
+    }
+}
 
 
 export async function subscribeUser(sub: { endpoint: string, p256dh: string, auth: string }) {
@@ -48,6 +55,7 @@ export async function unsubscribeUser(endpoint: string) {
     return { success: true }
 }
 export async function sendNotification(userId: string, message: string, title: string = 'Habit Hero') {
+    ensureVapidConfigured();
     const subscriptions = await prisma.pushSubscription.findMany({
         where: { userId },
     })

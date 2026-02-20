@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { sendNotification } from '@/app/actions';
-import { frequencySplit, scheduleSplit, secondsToMillis } from '@/lib/dbformatting';
+import { frequencySplit, scheduleSplit } from '@/lib/dbformatting';
 import { getWeekDay, getMonthDay } from '@/lib/types';
 
 // Protect the cron endpoint with a secret
