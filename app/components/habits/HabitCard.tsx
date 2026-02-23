@@ -25,8 +25,7 @@ import isReadyToComplete, {
 import { Progress } from "@/components/ui/progress";
 import { HabitInfo } from "../habits/HabitInfo";
 import { useOnlineStatus } from "../../providers/online-status";
-import { useHabitCompletion } from "../../hooks/habits/useHabitCompletion";
-import { useHabitDeletion } from "../../hooks/habits/useHabitDeletion";
+import useHabitMutations from "../../hooks/habits/useHabitMutations";
 import HabitFolderDialog from "../habits/HabitFolderDialog";
 import { lastCompletedFormatted } from "@/lib/timeFormatting";
 import DeleteConfirmationModal from "../misc/DeleteConfirmationModal";
@@ -37,8 +36,7 @@ type Props = {
 
 export default function HabitCard({ habit }: Props) {
   // hooks consts
-  const completeHabit = useHabitCompletion();
-  const deleteHabit = useHabitDeletion();
+  const { completeHabit, deleteHabit } = useHabitMutations();
 
   //online const
   const { isOnline } = useOnlineStatus();

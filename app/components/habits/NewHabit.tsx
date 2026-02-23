@@ -15,15 +15,15 @@ import { toast } from "sonner";
 import { Habit as uiHabit } from "@/lib/types";
 import { Calendar04 } from "../calendars/Calendar";
 import { now, nowDate, nowInSeconds } from "@/lib/timeCounter";
-import { useHabitCreation } from "../../hooks/habits/useHabitCreation";
-import { useHabitUpdate } from "../../hooks/habits/useHabitUpdate";
+import useHabitMutations from "../../hooks/habits/useHabitMutations";
 
 type Props = {
   habit: uiHabit;
   mode: "add" | "update";
+  onCreated?: () => void;
 };
 
-export default function NewHabit({ habit, mode }: Props) {
+export default function NewHabit({ habit, mode, onCreated }: Props) {
   //  setForm consts
   const [form, setForm] = useState({
     title: habit.title,
@@ -33,8 +33,7 @@ export default function NewHabit({ habit, mode }: Props) {
     schedule: [nowDate()],
   });
   // store const
-  const createHabit = useHabitCreation();
-  const updateHabit = useHabitUpdate();
+  const { createHabit, updateHabit } = useHabitMutations();
 
   const inputHabit: uiHabit = {
     id: mode === "update" ? habit.id : uuidv4(),
@@ -61,6 +60,7 @@ export default function NewHabit({ habit, mode }: Props) {
 
     if (mode === "add") {
       createHabit(inputHabit);
+      onCreated?.();
     } else {
       updateHabit(inputHabit);
     }

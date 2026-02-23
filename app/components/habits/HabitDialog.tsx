@@ -14,9 +14,10 @@ type Props = {
   mode: "add" | "update";
   habit: Habit;
   className?: string;
+  onCreated?: () => void;
 };
 
-export default function HabitDialog({ mode, habit, className }: Props) {
+export default function HabitDialog({ mode, habit, className, onCreated }: Props) {
   const nameTrigger =
     mode === "add" ? "Add Habit" : <SquarePen size={20} className="p-0" />;
   const dialogTitle = mode === "add" ? "Add Habit" : "Update Habit";
@@ -35,7 +36,7 @@ export default function HabitDialog({ mode, habit, className }: Props) {
           </DialogDescription>
         </DialogHeader>
         {/* Component with inputs */}
-        <NewHabit habit={habit} mode={mode} />
+        <NewHabit habit={habit} mode={mode} onCreated={onCreated} />
       </DialogContent>
     </Dialog>
   );

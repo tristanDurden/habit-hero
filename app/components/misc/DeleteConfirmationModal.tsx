@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Dialog } from "@radix-ui/react-dialog";
-import { useHabitDeletion } from "../../hooks/habits/useHabitDeletion";
+import useHabitMutations from "../../hooks/habits/useHabitMutations";
 import { CircleX, Trash } from "lucide-react";
 import { useFolderDeletion } from "../../hooks/folders/useFolderDeletion";
 import { useHabitToFolderDeletion } from "../../hooks/folders/useHabitToFolderDeletion";
@@ -46,7 +46,7 @@ const labels: Record<Props["job"]["type"], string> = {
 };
 
 export default function DeleteConfirmationModal({ job }: Props) {
-    const deleteHabit = useHabitDeletion();
+    const { deleteHabit } = useHabitMutations();
     const deleteFolder = useFolderDeletion();
     const deleteHabitFromFolder = useHabitToFolderDeletion();
     const { deleteList, deleteListItem } = useListMutations();

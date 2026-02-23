@@ -17,9 +17,10 @@ import { useState } from "react"
 type Props = {
     mode: "add" | "edit"
     list?: List
+    onCreated?: () => void
 }
 
-  export default function NewEditList({ mode, list }: Props) {
+  export default function NewEditList({ mode, list, onCreated }: Props) {
     const [open, setOpen] = useState(false)
     const isEdit = mode === "edit"
 
@@ -43,7 +44,7 @@ type Props = {
                 {isEdit ? "Edit the details of your list." : "Create a new list to organize your tasks."}
             </DialogDescription>
             </DialogHeader>
-            <NewListForm mode={mode} list={list} onDone={() => setOpen(false)} />
+            <NewListForm mode={mode} list={list} onDone={() => { setOpen(false); if (mode === "add") onCreated?.(); }} />
         </DialogContent>
     </Dialog>
     )

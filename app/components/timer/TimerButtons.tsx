@@ -5,8 +5,7 @@ import { Play, Pause, Square, RotateCcw } from "lucide-react";
 import { Timer, TimerConfigForm } from "../../types/timer";
 import { toast } from "sonner";
 import useTimerStore from "../../timerStore";
-import { useHabitCompletion } from "../../hooks/habits/useHabitCompletion";
-import { useHabitLogDuration } from "../../hooks/habits/useHabitLogDuration";
+import useHabitMutations from "../../hooks/habits/useHabitMutations";
 import useHabitStore from "../../habitStore";
 import { todayKey, nowDate } from "@/lib/timeCounter";
 import { numberTranslater } from "@/lib/types";
@@ -26,8 +25,7 @@ export default function TimerButtons({ habitId, form, timer, onHide }: Props) {
   const finishTimer = useTimerStore((s) => s.finishTimer);
   const showFloatingTimer = useTimerStore((s) => s.showFloatingTimer);
 
-  const completeHabit = useHabitCompletion();
-  const logDuration = useHabitLogDuration();
+  const { completeHabit, logDuration } = useHabitMutations();
 
   const handleStart = () => {
     switch (form.type) {

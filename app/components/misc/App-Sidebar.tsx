@@ -20,7 +20,7 @@ import Link from "next/link"
               <SidebarMenu>
                 <SidebarMenuItem>
                     <Link href="/dashboard">
-                  <SidebarMenuButton tooltip="Home" >
+                  <SidebarMenuButton tooltip="Home" className="[&>svg]:size-5 text-base p-1">
                     <Home />
                     <span>Home</span>
                   </SidebarMenuButton>
@@ -29,7 +29,7 @@ import Link from "next/link"
     
                 <SidebarMenuItem>
                   <Link href="/dashboard/habits">
-                  <SidebarMenuButton tooltip="Habits">
+                  <SidebarMenuButton tooltip="Habits" className="[&>svg]:size-5 text-base p-1">
                   <TreePalm />
                     <span>Habits</span>
                   </SidebarMenuButton>
@@ -38,7 +38,7 @@ import Link from "next/link"
     
                 <SidebarMenuItem>
                   <Link href="/dashboard/lists">
-                  <SidebarMenuButton tooltip="Lists">
+                  <SidebarMenuButton tooltip="Lists" className="[&>svg]:size-5 text-base p-1">
                   <ClipboardList />
                     <span>Lists</span>
                   </SidebarMenuButton>
@@ -46,7 +46,7 @@ import Link from "next/link"
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <Link href="/dashboard/settings">
-                  <SidebarMenuButton tooltip="Settings">
+                  <SidebarMenuButton tooltip="Settings" className="[&>svg]:size-5 text-base p-1">
                   <Settings />
                     <span>Settings</span>
                   </SidebarMenuButton>
