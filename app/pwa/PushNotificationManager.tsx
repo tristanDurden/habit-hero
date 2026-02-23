@@ -107,10 +107,12 @@ export default function PushNotificationManager() {
 
         setSubscription(sub)
         const serializedSub = JSON.parse(JSON.stringify(sub))
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
         await subscribeUser({
           endpoint: serializedSub.endpoint,
           p256dh: serializedSub.keys.p256dh,
           auth: serializedSub.keys.auth,
+          timezone,
         })
       } catch (err: unknown) {
         console.error('Push subscription failed:', err)

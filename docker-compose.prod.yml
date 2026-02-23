@@ -34,21 +34,47 @@ services:
       MYSQL_USER: habituser
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "127.0.0.1:3306:3306"  # Only accessible from localhost
+      - "127.0.0.1:3306:3306" # Only accessible from localhost
     volumes:
       - db_data:/var/lib/mysql
     networks:
       - habit-hero-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  # Lightweight sidecar that hits the notification endpoint every hour.
+  # The endpoint itself decides which users to notify based on their local time.
+  cron:
+    image: alpine:3.19
+    container_name: habit-hero-cron
+    restart: always
+    depends_on:
+      - app
+    environment:
+      - CRON_SECRET=${CRON_SECRET}
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        # install curl (tiny, cached after first pull)
+        apk add --no-cache curl > /dev/null 2>&1
+
+        # write the crontab: every hour at minute 0
+        echo '0 * * * * curl -sf -H "x-cron-secret: '"$$CRON_SECRET"'" http://app:3000/api/cron/notifications > /proc/1/fd/1 2>&1' \
+          | crontab -
+
+        echo "[cron] Hourly notification cron installed — waiting for first tick …"
+        crond -f -l 2
+    networks:
+      - habit-hero-network
+
 volumes:
   db_data:
+
 
 networks:
   habit-hero-network:
     driver: bridge
-

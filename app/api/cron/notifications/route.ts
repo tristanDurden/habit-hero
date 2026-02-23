@@ -10,23 +10,53 @@ function isAuthorized(req: NextRequest): boolean {
     return secret === process.env.CRON_SECRET;
 }
 
-// Check if a habit is scheduled for today based on its frequency/schedule
-function isScheduledForToday(frequency: string, schedule: string): boolean {
+// Get the current local Date for a given IANA timezone (e.g. "America/New_York")
+function getUserLocalDate(timezone: string): Date {
+    const dateStr = new Date().toLocaleString('en-US', { timeZone: timezone });
+    return new Date(dateStr);
+}
+
+// Return true when the current hour in the user's timezone matches their
+// preferred notification hour.  Called once per hourly cron invocation so
+// only the right slice of users gets notified each time.
+function isNotificationHour(
+    userTimezone: string | null,
+    notificationTime: string | null
+): boolean {
+    const tz = userTimezone || 'UTC';
+    const preferredHour = parseInt((notificationTime || '20:00').split(':')[0], 10);
+
+    try {
+        const userLocalHour = getUserLocalDate(tz).getHours();
+        return userLocalHour === preferredHour;
+    } catch {
+        // Invalid timezone – fall back to UTC
+        const utcHour = new Date().getUTCHours();
+        return utcHour === preferredHour;
+    }
+}
+
+// Check if a habit is scheduled for today based on its frequency/schedule,
+// using the user's local date so "today" is correct across timezones.
+function isScheduledForToday(
+    frequency: string,
+    schedule: string,
+    userLocalDate: Date
+): boolean {
     const [, unit] = frequencySplit(frequency);
-    const today = new Date();
 
     if (unit === 'day') return true;
 
     if (unit === 'week') {
         const scheduleDates = scheduleSplit(schedule);
         const scheduledWeekdays = scheduleDates.map((d) => getWeekDay(d));
-        return scheduledWeekdays.includes(getWeekDay(today));
+        return scheduledWeekdays.includes(getWeekDay(userLocalDate));
     }
 
     if (unit === 'month') {
         const scheduleDates = scheduleSplit(schedule);
         const scheduledMonthDays = scheduleDates.map((d) => getMonthDay(d));
-        return scheduledMonthDays.includes(getMonthDay(today));
+        return scheduledMonthDays.includes(getMonthDay(userLocalDate));
     }
 
     return false;
@@ -43,19 +73,24 @@ type NotificationMessage = {
 };
 
 // Build notification messages for a user based on their habits
-function buildNotifications(habits: {
-    id: string;
-    title: string;
-    frequency: string;
-    schedule: string;
-    streak: number;
-    doneToday: boolean;
-    lastCompleted: number;
-}[]): NotificationMessage[] {
+function buildNotifications(
+    habits: {
+        id: string;
+        title: string;
+        frequency: string;
+        schedule: string;
+        streak: number;
+        doneToday: boolean;
+        lastCompleted: number;
+    }[],
+    userLocalDate: Date
+): NotificationMessage[] {
     const notifications: NotificationMessage[] = [];
 
-    // Filter habits scheduled for today
-    const todaysHabits = habits.filter((h) => isScheduledForToday(h.frequency, h.schedule));
+    // Filter habits scheduled for today (in the user's local timezone)
+    const todaysHabits = habits.filter((h) =>
+        isScheduledForToday(h.frequency, h.schedule, userLocalDate)
+    );
     const incompleteHabits = todaysHabits.filter((h) => !h.doneToday);
     const streaksAtRisk = incompleteHabits.filter((h) => isStreakAtRisk(h));
 
@@ -123,9 +158,17 @@ export async function GET(req: NextRequest) {
 
         let sent = 0;
         let skipped = 0;
+        let notTheirHour = 0;
 
         for (const user of usersWithSubscriptions) {
-            const notifications = buildNotifications(user.habits);
+            // ── Hourly gate: only notify users whose local hour matches ──
+            if (!isNotificationHour(user.timezone, user.notificationTime)) {
+                notTheirHour++;
+                continue;
+            }
+
+            const userLocalDate = getUserLocalDate(user.timezone || 'UTC');
+            const notifications = buildNotifications(user.habits, userLocalDate);
 
             if (notifications.length === 0) {
                 skipped++;
@@ -142,6 +185,7 @@ export async function GET(req: NextRequest) {
             success: true,
             sent,
             skipped,
+            notTheirHour,
             totalUsers: usersWithSubscriptions.length,
         });
     } catch (error) {

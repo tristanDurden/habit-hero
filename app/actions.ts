@@ -19,7 +19,7 @@ function ensureVapidConfigured() {
 }
 
 
-export async function subscribeUser(sub: { endpoint: string, p256dh: string, auth: string }) {
+export async function subscribeUser(sub: { endpoint: string, p256dh: string, auth: string, timezone?: string, notificationTime?: string }) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
         return { success: false, error: 'Unauthorized' }
@@ -30,6 +30,19 @@ export async function subscribeUser(sub: { endpoint: string, p256dh: string, aut
     if (!user) {
         return { success: false, error: 'User not found' }
     }
+
+    // Update timezone and/or notificationTime if provided
+    const userData: { timezone?: string; notificationTime?: string } = {};
+    if (sub.timezone) userData.timezone = sub.timezone;
+    if (sub.notificationTime) userData.notificationTime = sub.notificationTime;
+
+    if (Object.keys(userData).length > 0) {
+        await prisma.user.update({
+            where: { id: user.id },
+            data: userData,
+        });
+    }
+
     await prisma.pushSubscription.upsert({
         where: { endpoint: sub.endpoint },
         update: {
@@ -104,4 +117,46 @@ export async function sendTestNotification(message: string) {
         return { success: false, error: 'User not found' }
     }
     return sendNotification(user.id, message)
+}
+
+export async function getNotificationPreferences() {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+        return { success: false, error: 'Unauthorized' }
+    }
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        select: { timezone: true, notificationTime: true },
+    });
+    if (!user) {
+        return { success: false, error: 'User not found' }
+    }
+    return {
+        success: true,
+        timezone: user.timezone,
+        notificationTime: user.notificationTime,
+    };
+}
+
+export async function updateNotificationPreferences(timezone?: string, notificationTime?: string) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+        return { success: false, error: 'Unauthorized' }
+    }
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+    });
+    if (!user) {
+        return { success: false, error: 'User not found' }
+    }
+    const userData: { timezone?: string; notificationTime?: string } = {};
+    if (timezone) userData.timezone = timezone;
+    if (notificationTime) userData.notificationTime = notificationTime;
+    if (Object.keys(userData).length > 0) {
+        await prisma.user.update({
+            where: { id: user.id },
+            data: userData,
+        });
+    }
+    return { success: true };
 }
